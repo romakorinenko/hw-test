@@ -2,10 +2,10 @@ package reader
 
 import (
 	"encoding/json"
+	"fmt"
+	"io"
+	"os"
 )
-import "fmt"
-import "io"
-import "os"
 
 import "github.com/fixme_my_friend/hw02_fix_app/model"
 
@@ -24,6 +24,9 @@ func ReadJSON(filePath string) ([]model.Employee, error) {
 
 	var data []model.Employee
 	err = json.Unmarshal(bytes, &data)
+	if err != nil {
+		return nil, err
+	}
 
 	return data, nil
 }

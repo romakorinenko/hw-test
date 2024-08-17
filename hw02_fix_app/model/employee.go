@@ -3,7 +3,7 @@ package model
 import "fmt"
 
 type Employee struct {
-	UserID       int    `json:"user_id"`
+	UserID       int    `json:"userId"`
 	Age          int    `json:"age"`
 	Name         string `json:"name"`
 	DepartmentID int    `json:"departmentId"`
