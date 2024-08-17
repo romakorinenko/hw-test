@@ -6,7 +6,7 @@ import (
 	"io"
 	"os"
 
-	"github.com/hw-test/hw02_fix_app/model"
+	"github.com/romakorinenko/hw-test/hw02_fix_app/model"
 )
 
 func ReadJSON(filePath string) ([]model.Employee, error) {
