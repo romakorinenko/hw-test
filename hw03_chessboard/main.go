@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"strings"
+)
 
 const (
 	black = "#"
@@ -18,24 +21,26 @@ func main() {
 }
 
 func chessboard(size int) string {
-	var res string
+	var res strings.Builder
 	for str := 0; str < size; str++ {
-		res += chessString(size, str%2 == 0)
+		res.WriteString(chessString(size, str%2 == 0))
 	}
 
-	return res
+	return res.String()
 }
 
 func chessString(size int, isFirstBlack bool) string {
-	var res string
+	var res strings.Builder
 
 	for cell := 0; cell < size; cell++ {
 		if cell%2 == 0 == isFirstBlack {
-			res += black
+			res.WriteString(black)
 		} else {
-			res += white
+			res.WriteString(white)
 		}
 	}
 
-	return res + "\n"
+	res.WriteString("\n")
+
+	return res.String()
 }
