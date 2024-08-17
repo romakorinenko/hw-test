@@ -1,29 +1,27 @@
-package init
+package main
 
 import (
+	"fmt"
 	"github.com/fixme_my_friend/hw02_fix_app/printer"
 	"github.com/fixme_my_friend/hw02_fix_app/reader"
-	"github.com/fixme_my_friend/hw02_fix_app/types"
-	"fmt"
+	"log/slog"
 )
 
-func init() {
-	var path string = "data.json"
-
+func main() {
+	var path string
 	fmt.Printf("Enter data file path: ")
-	fmt.Scanln(&path)
-
-	var err error
-	var staff []types.Employee
+	if n, err := fmt.Scanln(&path); err != nil || n != 1 {
+		slog.Error("Cannot scan file name from command line", slog.Any("error", err))
+	}
 
 	if len(path) == 0 {
 		path = "data.json"
-	} else {
 	}
 
-	staff, err = reader.ReadJSON(path, -1)
-
-	fmt.Print(err)
+	staff, err := reader.ReadJSON(path)
+	if err != nil {
+		slog.Error("Cannot read from file", slog.Any("error", err))
+	}
 
 	printer.PrintStaff(staff)
 }
