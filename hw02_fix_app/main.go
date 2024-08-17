@@ -3,8 +3,8 @@ package main
 import (
 	"fmt"
 
-	"github.com/fixme_my_friend/hw02_fix_app/printer"
-	"github.com/fixme_my_friend/hw02_fix_app/reader"
+	"github.com/hw-test/hw02_fix_app/printer"
+	"github.com/hw-test/hw02_fix_app/reader"
 )
 
 func main() {
