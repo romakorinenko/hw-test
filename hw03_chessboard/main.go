@@ -14,7 +14,7 @@ func main() {
 		fmt.Printf("getting chessboard size: %v", err)
 	}
 
-	chessboard(size)
+	fmt.Println(chessboard(size))
 }
 
 func chessboard(size int) string {
@@ -29,21 +29,11 @@ func chessboard(size int) string {
 func chessString(size int, isFirstBlack bool) string {
 	var res string
 
-	if isFirstBlack {
-		for cell := 0; cell < size; cell++ {
-			if cell%2 == 0 {
-				res += black
-			} else {
-				res += white
-			}
-		}
-	} else {
-		for cell := 0; cell < size; cell++ {
-			if cell%2 == 1 {
-				res += black
-			} else {
-				res += white
-			}
+	for cell := 0; cell < size; cell++ {
+		if cell%2 == 0 == isFirstBlack {
+			res += black
+		} else {
+			res += white
 		}
 	}
 
