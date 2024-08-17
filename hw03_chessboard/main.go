@@ -11,7 +11,7 @@ func main() {
 	var size int
 	fmt.Print("Enter chessboard size: ")
 	if _, err := fmt.Scanf("%d", &size); err != nil {
-		fmt.Printf("getting chessboard size: %v", err)
+		fmt.Printf("getting chessboard size error. Cause: %v", err)
 	}
 
 	fmt.Println(chessboard(size))
