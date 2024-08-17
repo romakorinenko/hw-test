@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/fixme_my_friend/hw02_fix_app/printer"
 	"github.com/fixme_my_friend/hw02_fix_app/reader"
-	"log/slog"
 )
 
 func main() {
@@ -19,7 +18,7 @@ func main() {
 
 	staff, err := reader.ReadJSON(path)
 	if err != nil {
-		slog.Error("Cannot read from file", slog.Any("error", err))
+		fmt.Printf("Cannot read from file. Cause: %v", err.Error())
 	}
 
 	printer.PrintStaff(staff)
