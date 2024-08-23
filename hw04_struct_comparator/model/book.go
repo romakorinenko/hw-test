@@ -13,11 +13,11 @@ func NewBook(id int, title string, author string, year int, size int, rate float
 	return &Book{id: id, title: title, author: author, year: year, size: size, rate: rate}
 }
 
-func (b *Book) Id() int {
+func (b *Book) ID() int {
 	return b.id
 }
 
-func (b *Book) SetId(id int) {
+func (b *Book) SetID(id int) {
 	b.id = id
 }
 
