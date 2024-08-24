@@ -21,6 +21,6 @@ func (c *Circle) Square() float64 {
 	return decimal.NewFromFloat(math.Pi).Mul(radius.Pow(decimal.NewFromFloat32(2))).InexactFloat64()
 }
 
-func (c *Circle) String(square float64) string {
+func (c *Circle) Description(square float64) string {
 	return fmt.Sprintf("Круг: радиус %d Площадь: %.4f", c.radius, square)
 }

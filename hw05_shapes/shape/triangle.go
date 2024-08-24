@@ -19,6 +19,6 @@ func (t *Triangle) Square() float64 {
 	return decimal.NewFromFloat(0.5).Mul(decimal.NewFromInt(t.base * t.height)).InexactFloat64()
 }
 
-func (t *Triangle) String(square float64) string {
+func (t *Triangle) Description(square float64) string {
 	return fmt.Sprintf("Треугольник: основание %d, высота %d Площадь: %.0f", t.base, t.height, square)
 }

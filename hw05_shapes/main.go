@@ -1,9 +1,9 @@
 package main
 
 import (
+	"errors"
 	"fmt"
 
-	"github.com/romakorinenko/hw-test/hw05_shapes/errors"
 	"github.com/romakorinenko/hw-test/hw05_shapes/shape"
 )
 
@@ -16,19 +16,19 @@ func main() {
 	if circleSquare, err := calculateArea(circle); err != nil {
 		fmt.Println(err.Error())
 	} else {
-		fmt.Println(circle.String(circleSquare))
+		fmt.Println(circle.Description(circleSquare))
 	}
 
 	if rectangleSquare, err := calculateArea(rectangle); err != nil {
 		fmt.Println(err.Error())
 	} else {
-		fmt.Println(rectangle.String(rectangleSquare))
+		fmt.Println(rectangle.Description(rectangleSquare))
 	}
 
 	if triangleSquare, err := calculateArea(triangle); err != nil {
 		fmt.Println(err.Error())
 	} else {
-		fmt.Println(triangle.String(triangleSquare))
+		fmt.Println(triangle.Description(triangleSquare))
 	}
 
 	if squareSquare, err := calculateArea(square); err != nil {
@@ -40,13 +40,9 @@ func main() {
 
 func calculateArea(s any) (float64, error) {
 	switch shapeType := s.(type) {
-	case *shape.Circle:
-		return shapeType.Square(), nil
-	case *shape.Rectangle:
-		return shapeType.Square(), nil
-	case *shape.Triangle:
+	case shape.Shape:
 		return shapeType.Square(), nil
 	default:
-		return 0, errors.NoShapeError{}
+		return 0, errors.New("ошибка: переданный объект не является фигурой")
 	}
 }
