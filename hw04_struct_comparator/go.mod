@@ -1,3 +1,5 @@
-module github.com/fixme_my_friend/hw04_struct_comparator
+module github.com/romakorinenko/hw-test/hw04_struct_comparator
 
 go 1.20
+
+require github.com/shopspring/decimal v1.4.0
