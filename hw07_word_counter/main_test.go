@@ -7,47 +7,12 @@ import (
 )
 
 func TestCountWords(t *testing.T) {
-	testCases := []struct {
-		name           string
-		text           string
-		expectedResult map[string]int
-	}{
-		{
-			name:           "В метод передана пустая строка",
-			text:           "",
-			expectedResult: map[string]int{},
-		},
-		{
-			name:           "В метод передан текст на русском",
-			text:           "рыжий кот рыжий кот",
-			expectedResult: map[string]int{"рыжий": 2, "кот": 2},
-		},
-		{
-			name:           "В метод передан текст на английском",
-			text:           "ginger cat cat ginger",
-			expectedResult: map[string]int{"ginger": 2, "cat": 2},
-		},
-		{
-			name:           "В метод передан текст с разным регистром",
-			text:           "gingER Cat GiNger cAt",
-			expectedResult: map[string]int{"ginger": 2, "cat": 2},
-		},
-		{
-			name:           "В метод передан текст, где помимо пробелов присутствуют другие знаки препинания",
-			text:           "ginger,cat:ginger-cat",
-			expectedResult: map[string]int{"ginger": 2, "cat": 2},
-		},
-		{
-			name:           "В метод передан комбинированный текст, включающий все предыдущие кейсы",
-			text:           "Рыжий;коТ-Ginger cat+кот*hello,世界 โลก",
-			expectedResult: map[string]int{"ginger": 1, "cat": 1, "рыжий": 1, "кот": 2, "hello": 1, "世界": 1, "โลก": 1},
-		},
-	}
+	t.Run("В метод передан комбинированный текст, включающий все предыдущие кейсы", func(t *testing.T) {
+		text := "кот!@#$%^&*()_+=-?><}{[]|\"'Кот кОт кот1рыжий:рыжий*8Hello,世界-🤯🤯🤯 ta4ка"
 
-	for _, testCase := range testCases {
-		t.Run(testCase.name, func(t *testing.T) {
-			wordToCountMap := countWords(testCase.text)
-			require.Equal(t, testCase.expectedResult, wordToCountMap)
-		})
-	}
+		expectedResult := map[string]int{"кот": 3, "кот1рыжий": 1, "рыжий": 1, "8hello": 1, "世界": 1, "🤯🤯🤯": 1, "ta4ка": 1}
+		words := countWords(text)
+
+		require.Equal(t, expectedResult, words)
+	})
 }

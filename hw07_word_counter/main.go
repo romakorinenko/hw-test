@@ -7,21 +7,20 @@ import (
 )
 
 func main() {
-	fmt.Println(countWords("кот Кот кОт кот1рыжий:рыжий*8Hello,世界"))
+	fmt.Println(countWords("Я устал, босс"))
 }
 
 func countWords(text string) map[string]int {
-	deleteAllInsteadLetters := regexp.MustCompile(`[^\p{L}]+`)
-	onlyWordsString := deleteAllInsteadLetters.ReplaceAllString(text, " ")
+	textWithoutPunctuationRegex := regexp.MustCompile(`[[:punct:]]`)
+	textWithoutPunctuation := textWithoutPunctuationRegex.ReplaceAllString(text, " ")
 
 	wordRegex := regexp.MustCompile(`\S+`)
-	words := wordRegex.FindAllString(strings.ToLower(onlyWordsString), -1)
+	words := wordRegex.FindAllString(strings.ToLower(textWithoutPunctuation), -1)
 
 	wordToCountMap := make(map[string]int)
 
 	for _, word := range words {
-		wordInLowerCase := strings.ToLower(word)
-		wordToCountMap[wordInLowerCase]++
+		wordToCountMap[word]++
 	}
 
 	return wordToCountMap
