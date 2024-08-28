@@ -39,8 +39,8 @@ func TestCountWords(t *testing.T) {
 		},
 		{
 			name:           "В метод передан комбинированный текст, включающий все предыдущие кейсы",
-			text:           "Рыжий;коТ-Ginger cat+кот",
-			expectedResult: map[string]int{"ginger": 1, "cat": 1, "рыжий": 1, "кот": 2},
+			text:           "Рыжий;коТ-Ginger cat+кот*hello,世界 โลก",
+			expectedResult: map[string]int{"ginger": 1, "cat": 1, "рыжий": 1, "кот": 2, "hello": 1, "世界": 1, "โลก": 1},
 		},
 	}
 
