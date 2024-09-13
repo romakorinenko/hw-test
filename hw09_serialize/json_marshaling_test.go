@@ -36,7 +36,6 @@ func TestBook_MarshalJSON(t *testing.T) {
 			bytes, err := testCase.book.MarshalJSON()
 			require.NoError(t, err)
 			require.Equal(t, testCase.expectedJSON, string(bytes))
-
 		})
 	}
 }
@@ -121,10 +120,7 @@ func TestMarshalBooksJSON(t *testing.T) {
 					Rate:   4.33,
 				},
 			},
-			expectedJSON: `[
-								{"id":1,"title":"book","author":"author","year":2029,"size":300,"rate":4.33},
-								{"id":1,"title":"book","author":"author","year":2029,"size":300,"rate":4.33}
-							]`,
+			expectedJSON: `[{"id":1,"title":"book","author":"author","year":2029,"size":300,"rate":4.33},{"id":1,"title":"book","author":"author","year":2029,"size":300,"rate":4.33}]`, //nolint:lll
 		},
 	}
 
