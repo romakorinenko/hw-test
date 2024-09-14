@@ -1,0 +1,18 @@
+syntax = "proto3";
+
+package dto;
+
+option go_package = "/hw09_serialize;main";
+
+message Book {
+  int64 id = 1;
+  string title = 2;
+  string author = 3;
+  int32 year = 4;
+  int32 size = 5;
+  double rate = 6;
+}
+
+message Books {
+  repeated Book books = 1;
+}
