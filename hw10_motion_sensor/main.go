@@ -34,7 +34,7 @@ func collectData(ctx context.Context, fromSensorChannel chan<- int64) {
 		default:
 			randomNumber, err := rand.Int(rand.Reader, big.NewInt(10))
 			if err != nil {
-				log.Fatal("cannot receive random number")
+				log.Println("cannot receive random number")
 			}
 			fromSensorChannel <- randomNumber.Int64()
 		}
