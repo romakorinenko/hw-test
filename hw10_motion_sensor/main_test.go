@@ -1,19 +1,16 @@
 package main
 
 import (
-	"context"
 	"testing"
 	"time"
 
 	"github.com/stretchr/testify/require"
 )
 
-func TestCollectData_WithTimeout(t *testing.T) {
+func TestCollectData(t *testing.T) {
 	fromSensorChannel := make(chan int64)
-	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Millisecond)
-	defer cancel()
 
-	go collectData(ctx, fromSensorChannel)
+	go collectData(fromSensorChannel, 1)
 
 	count := 0
 	for range fromSensorChannel {
@@ -21,21 +18,6 @@ func TestCollectData_WithTimeout(t *testing.T) {
 	}
 
 	require.True(t, count > 0)
-}
-
-func TestCollectData_WithoutTimeout(t *testing.T) {
-	fromSensorChannel := make(chan int64)
-	ctx, cancel := context.WithTimeout(context.Background(), 0*time.Millisecond)
-	defer cancel()
-
-	go collectData(ctx, fromSensorChannel)
-
-	count := 0
-	for range fromSensorChannel {
-		count++
-	}
-
-	require.False(t, count > 0)
 }
 
 func TestAnalyseData_TenNumbersReceived(t *testing.T) {

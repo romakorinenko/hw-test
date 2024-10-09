@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"crypto/rand"
 	"fmt"
 	"log"
@@ -13,23 +12,22 @@ func main() {
 	fromSensorChannel := make(chan int64)
 	analysedDataChannel := make(chan float32)
 
-	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-	defer cancel()
-
-	go collectData(ctx, fromSensorChannel)
+	go collectData(fromSensorChannel, 60*time.Minute)
 	go analyseData(fromSensorChannel, analysedDataChannel)
 
-	for b := range analysedDataChannel {
-		fmt.Println(b)
+	for averageData := range analysedDataChannel {
+		fmt.Println(averageData)
 	}
 }
 
-func collectData(ctx context.Context, fromSensorChannel chan<- int64) {
+func collectData(fromSensorChannel chan<- int64, seconds time.Duration) {
 	defer close(fromSensorChannel)
+
+	to := time.After(seconds)
 
 	for {
 		select {
-		case <-ctx.Done():
+		case <-to:
 			return
 		default:
 			randomNumber, err := rand.Int(rand.Reader, big.NewInt(10))
