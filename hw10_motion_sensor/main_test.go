@@ -10,14 +10,21 @@ import (
 func TestCollectData(t *testing.T) {
 	fromSensorChannel := make(chan int64)
 
-	go collectData(fromSensorChannel, 1)
+	seconds := 1 * time.Second
+	go collectData(fromSensorChannel, seconds)
 
-	count := 0
-	for range fromSensorChannel {
-		count++
+	to := time.After(seconds)
+
+	results := make([]int64, 0, 10)
+
+	select {
+	case <-to:
+		break
+	case i := <-fromSensorChannel:
+		results = append(results, i)
 	}
 
-	require.True(t, count > 0)
+	require.True(t, len(results) > 0)
 }
 
 func TestAnalyseData_TenNumbersReceived(t *testing.T) {

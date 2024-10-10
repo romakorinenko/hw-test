@@ -12,7 +12,7 @@ func main() {
 	fromSensorChannel := make(chan int64)
 	analysedDataChannel := make(chan float32)
 
-	go collectData(fromSensorChannel, 60*time.Minute)
+	go collectData(fromSensorChannel, 60*time.Second)
 	go analyseData(fromSensorChannel, analysedDataChannel)
 
 	for averageData := range analysedDataChannel {
@@ -26,15 +26,15 @@ func collectData(fromSensorChannel chan<- int64, seconds time.Duration) {
 	to := time.After(seconds)
 
 	for {
+		randomNumber, err := rand.Int(rand.Reader, big.NewInt(10))
+		if err != nil {
+			log.Println("cannot receive random number")
+		}
+
 		select {
 		case <-to:
 			return
-		default:
-			randomNumber, err := rand.Int(rand.Reader, big.NewInt(10))
-			if err != nil {
-				log.Println("cannot receive random number")
-			}
-			fromSensorChannel <- randomNumber.Int64()
+		case fromSensorChannel <- randomNumber.Int64():
 		}
 	}
 }
