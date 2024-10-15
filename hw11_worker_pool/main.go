@@ -35,7 +35,8 @@ func countWithPool(iterations int) (int, error) {
 			mutex.Unlock()
 			waitGroup.Done()
 		}()
-		waitGroup.Wait()
 	}
+	waitGroup.Wait()
+
 	return counter, nil
 }
