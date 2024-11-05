@@ -1,0 +1,22 @@
+30.10.2024 16:40:18.972 INFO  [background-preinit] o.h.v.i.u.Version - HV000001: Hibernate Validator 6.2.3.Final
+30.10.2024 16:40:18.973 INFO  [main] r.m.m.d.j.Application - Starting Application using Java 17.0.10 on local with PID 47172
+30.10.2024 16:40:18.973 DEBUG [main] r.m.m.d.j.Application - Running with Spring Boot v2.6.7, Spring v5.3.19
+30.10.2024 16:40:18.973 INFO  [main] r.m.m.d.j.Application - No active profile set, falling back to 1 default profile: "default"
+30.10.2024 16:40:19.418 INFO  [main] o.s.c.c.s.GenericScope - BeanFactory id=25859735-7bb1-341e-b8ac-9c8e8aa4a653
+30.10.2024 16:40:19.430 WARN  [main] o.s.b.c.p.PropertySourcesDeducer - Multiple PropertySourcesPlaceholderConfigurer beans registered [propertySourcesPlaceholderConfigurer, r.m.m.d.starter.config.NullValuePropertySourcesPlaceholderConfigurer], falling back to Environment
+30.10.2024 16:40:19.546 INFO  [main] o.s.b.w.e.t.TomcatWebServer - Tomcat initialized with port(s): 8080 (http)
+30.10.2024 16:40:19.550 INFO  [main] o.a.c.h.Http11NioProtocol - Initializing ProtocolHandler ["http-nio-8080"]
+30.10.2024 16:40:19.550 INFO  [main] o.a.c.c.StandardService - Starting service [Tomcat]
+30.10.2024 16:40:19.550 INFO  [main] o.a.c.c.StandardEngine - Starting Servlet engine: [Apache Tomcat/9.0.62]
+30.10.2024 16:40:19.605 INFO  [main] o.a.c.c.C.[.[.[/] - Initializing Spring embedded WebApplicationContext
+30.10.2024 16:40:19.605 INFO  [main] o.s.b.w.s.c.ServletWebServerApplicationContext - Root WebApplicationContext: initialization completed in 614 ms
+30.10.2024 16:40:19.663 DEBUG [main] o.s.w.s.r.ResourceUrlEncodingFilter - Filter 'resourceUrlEncodingFilter' configured for use
+30.10.2024 16:40:19.887 DEBUG [main] o.s.w.s.m.m.a.RequestMappingHandlerAdapter - ControllerAdvice beans: 0 @ModelAttribute, 0 @InitBinder, 1 RequestBodyAdvice, 1 ResponseBodyAdvice
+30.10.2024 16:40:19.907 DEBUG [main] o.s.w.s.m.m.a.RequestMappingHandlerMapping - 8 mappings in 'requestMappingHandlerMapping'
+30.10.2024 16:40:20.044 DEBUG [main] o.s.w.s.h.SimpleUrlHandlerMapping - Patterns [/webjars/**, /**, /swagger-ui*/**] in 'resourceHandlerMapping'
+30.10.2024 16:40:20.049 DEBUG [main] o.s.w.s.m.m.a.ExceptionHandlerExceptionResolver - ControllerAdvice beans: 1 @ExceptionHandler, 1 ResponseBodyAdvice
+30.10.2024 16:40:20.139 DEBUG [main] o.s.w.s.v.f.FreeMarkerConfigurer - File system access not preferred: using SpringTemplateLoader
+30.10.2024 16:40:20.143 WARN  [main] o.s.b.a.f.FreeMarkerAutoConfiguration - Cannot find template location(s): [classpath:/templates/] (please add some templates, check your FreeMarker configuration, or set spring.freemarker.checkTemplateLocation=false)
+30.10.2024 16:40:20.163 INFO  [main] o.s.c.n.e.c.DiscoveryClientOptionalArgsConfiguration - Eureka HTTP Client uses Jersey
+30.10.2024 16:40:20.176 WARN  [main] o.s.c.l.c.LoadBalancerCacheAutoConfiguration$LoadBalancerCaffeineWarnLogger - Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+30.10.2024 16:40:20.195 INFO  [main] o.s.b.a.e.w.EndpointLinksResolver - Exposing 4 endpoint(s) beneath base path '/actuator'
