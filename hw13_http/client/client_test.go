@@ -12,7 +12,6 @@ import (
 )
 
 func TestSendRequest(t *testing.T) {
-
 	testCases := []struct {
 		method         string
 		expectedStatus int
@@ -52,6 +51,8 @@ func TestSendRequest(t *testing.T) {
 		require.NoError(t, err)
 		require.Equal(t, testCase.expectedBody, string(body))
 		require.Equal(t, testCase.expectedStatus, resp.StatusCode)
+
+		_ = resp.Body.Close()
 	}
 }
 

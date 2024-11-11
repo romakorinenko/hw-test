@@ -10,18 +10,18 @@ import (
 )
 
 func main() {
-	host := flag.String("host", "http://localhost:8083", "server baseUrl")
-	path := flag.String("path", "/", "baseUrl path")
+	host := flag.String("host", "http://localhost:8083", "server baseURL")
+	path := flag.String("path", "/", "baseURL path")
 	flag.Parse()
 
-	baseUrl, err := url.Parse(*host)
+	baseURL, err := url.Parse(*host)
 	if err != nil {
 		return
 	}
-	baseUrl.Path = *path
+	baseURL.Path = *path
 
-	sendRequest(baseUrl.String(), "GET")
-	sendRequest(baseUrl.String(), "POST")
+	sendRequest(baseURL.String(), "GET")
+	sendRequest(baseURL.String(), "POST")
 }
 
 func sendRequest(url, method string) {
