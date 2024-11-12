@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"fmt"
 	"io"
@@ -14,21 +15,25 @@ import (
 func TestSendRequest(t *testing.T) {
 	testCases := []struct {
 		method         string
+		body           string
 		expectedStatus int
 		expectedBody   string
 	}{
 		{
 			method:         "GET",
+			body:           "",
 			expectedStatus: http.StatusOK,
 			expectedBody:   "GET response",
 		},
 		{
 			method:         "POST",
+			body:           "request body",
 			expectedStatus: http.StatusOK,
 			expectedBody:   "POST response",
 		},
 		{
 			method:         "PATCH",
+			body:           "",
 			expectedStatus: http.StatusMethodNotAllowed,
 			expectedBody:   "method not allowed\n",
 		},
@@ -41,10 +46,19 @@ func TestSendRequest(t *testing.T) {
 	client := &http.Client{}
 
 	for _, testCase := range testCases {
-		req, err := http.NewRequestWithContext(ctx, testCase.method, server.URL, nil)
-		require.NoError(t, err)
+		var request *http.Request
+		if testCase.body != "" {
+			req, err := http.NewRequestWithContext(ctx, testCase.method, server.URL, bytes.NewBufferString(testCase.body))
+			require.NoError(t, err)
+			req.Header.Set("Content-Type", "text/plain")
+			request = req
+		} else {
+			req, err := http.NewRequestWithContext(context.Background(), testCase.method, server.URL, nil)
+			require.NoError(t, err)
+			request = req
+		}
 
-		resp, err := client.Do(req)
+		resp, err := client.Do(request)
 		require.NoError(t, err)
 
 		body, err := io.ReadAll(resp.Body)

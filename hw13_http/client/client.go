@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"context"
 	"flag"
 	"fmt"
@@ -20,19 +21,31 @@ func main() {
 	}
 	baseURL.Path = *path
 
-	sendRequest(baseURL.String(), "GET")
-	sendRequest(baseURL.String(), "POST")
+	sendRequest(baseURL.String(), "GET", "")
+	sendRequest(baseURL.String(), "POST", "request body")
 }
 
-func sendRequest(url, method string) {
-	req, err := http.NewRequestWithContext(context.Background(), method, url, nil)
-	if err != nil {
-		fmt.Printf("%s request creating error: %v\n", method, err)
-		return
+func sendRequest(url, method, requestBody string) {
+	var request *http.Request
+	if requestBody != "" {
+		req, err := http.NewRequestWithContext(context.Background(), method, url, bytes.NewBufferString(requestBody))
+		if err != nil {
+			fmt.Printf("%s request creating error: %v\n", method, err)
+			return
+		}
+		req.Header.Set("Content-Type", "text/plain")
+		request = req
+	} else {
+		req, err := http.NewRequestWithContext(context.Background(), method, url, nil)
+		if err != nil {
+			fmt.Printf("%s request creating error: %v\n", method, err)
+			return
+		}
+		request = req
 	}
 
 	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := client.Do(request)
 	if err != nil {
 		fmt.Printf("%s request making error: %v\n", method, err)
 		return

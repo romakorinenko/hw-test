@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"net/http"
 	"time"
@@ -38,10 +39,15 @@ func requestHandler(w http.ResponseWriter, r *http.Request) {
 		}
 		fmt.Printf("received GET request for %s\n", r.Host+r.URL.Path)
 	case "POST":
+		body, postErr := io.ReadAll(r.Body)
+		if postErr != nil {
+			http.Error(w, "cannot read request body", http.StatusBadRequest)
+			return
+		}
 		if _, err := fmt.Fprintf(w, "POST response"); err != nil {
 			return
 		}
-		fmt.Printf("received POST request for %s\n", r.Host+r.URL.Path)
+		fmt.Printf("received POST request for %s with body: %s\n", r.Host+r.URL.Path, string(body))
 	default:
 		fmt.Printf("received %s request is invalid for %s\n", r.Method, r.Host+r.URL.Path)
 		http.Error(w, "method not allowed", http.StatusMethodNotAllowed)
