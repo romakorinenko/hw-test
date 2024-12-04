@@ -6,7 +6,7 @@ CREATE table IF NOT EXISTS users
     name     VARCHAR(255) NOT NULL DEFAULT '',
     email    VARCHAR(255) NOT NULL UNIQUE,
     password VARCHAR(255) NOT NULL
-    );
+);
 -- +goose StatementEnd
 
 -- +goose Down

@@ -22,14 +22,28 @@ func main() {
 
 	dbPool, err := NewDbPool(context.Background(), cfg.Db)
 	if err != nil {
-		log.Println("cannot create dbPool", err)
-		return
+		log.Fatalln("cannot create dbPool", err)
 	}
 
 	mux := http.NewServeMux()
 	userHandler := handler.NewUserHandler(repository.NewUserRepository(dbPool))
 	mux.HandleFunc("/users", userHandler.Handle)
 	mux.HandleFunc("/users/all", userHandler.GetAll)
+
+	productHandler := handler.NewProductHandler(repository.NewProductRepository(dbPool))
+	mux.HandleFunc("/products", productHandler.Handle)
+	mux.HandleFunc("/products/all", productHandler.GetAll)
+
+	//orderHandler := handler.NewOrderHandler(repository.NewOrderRepository(dbPool))
+	////mux.HandleFunc("/orders", orderHandler.CreateOrderHandler)
+	////mux.HandleFunc("/orders", orderHandler.DeleteOrderHandler)
+	//mux.HandleFunc("/orders/byuser/{userId}", orderHandler.GetOrdersByUserId)
+	//
+	//userStatHandler := handler.NewUserStatHandler(repository.NewUserStatRepository(dbPool))
+	//mux.HandleFunc("/user-stat/{id}", userStatHandler.GetUserStatById)
+
+	//mux.HandleFunc("POST /order-products/add", nil) // не надо реализовывать, прописать в логике репозитория
+	//mux.HandleFunc("DELETE /order-products/remove", nil)
 
 	server := &http.Server{
 		Addr:              fmt.Sprintf("%s:%d", host, port),

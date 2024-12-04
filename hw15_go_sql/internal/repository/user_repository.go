@@ -35,7 +35,7 @@ var UserStruct = sqlbuilder.NewStruct(new(User))
 func (u *UserRepository) Create(ctx context.Context, user *User) (*User, error) {
 	userId, err := u.generateNextUserId(ctx)
 	if err != nil {
-		return nil, fmt.Errorf("receiving next user id error: %w", err)
+		return nil, err
 	}
 	user.ID = int(userId)
 
