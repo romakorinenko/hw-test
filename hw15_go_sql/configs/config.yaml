@@ -1,0 +1,7 @@
+server:
+  host: localhost
+  port: 8086
+  readHeaderTimeout: 5s
+
+db:
+  connectionString: "postgresql://postgres:postgres@localhost:55432/test_db?sslmode=disable"
