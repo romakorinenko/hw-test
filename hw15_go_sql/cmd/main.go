@@ -36,7 +36,8 @@ func main() {
 
 	orderHandler := handler.NewOrderHandler(repository.NewOrderRepository(dbPool))
 	mux.HandleFunc("/orders", orderHandler.Handle)
-	//mux.HandleFunc("/orders/byuser", orderHandler.GetOrdersByUserId)
+	mux.HandleFunc("/orders/byuserid", orderHandler.GetByUserID)
+	mux.HandleFunc("/orders/byuseremail", orderHandler.GetByUserEmail)
 
 	//userStatHandler := handler.NewUserStatHandler(repository.NewUserStatRepository(dbPool))
 	//mux.HandleFunc("/user-stat/{id}", userStatHandler.GetUserStatById)

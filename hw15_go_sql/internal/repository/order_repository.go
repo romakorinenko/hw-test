@@ -20,6 +20,8 @@ type Order struct {
 type IOrderRepository interface {
 	Create(ctx context.Context, order *Order) (*Order, error)
 	DeleteById(ctx context.Context, orderId int) error
+	GetByUserId(ctx context.Context, userId int) ([]Order, error)
+	GetByUserEmail(ctx context.Context, userEmail string) ([]Order, error)
 }
 
 type OrderRepository struct {
@@ -98,6 +100,53 @@ func (o *OrderRepository) DeleteById(ctx context.Context, orderId int) error {
 	}
 
 	return nil
+}
+
+func (o *OrderRepository) GetByUserId(ctx context.Context, userId int) ([]Order, error) {
+	selectBuilder := OrderStruct.SelectFrom("orders")
+	sql, args := selectBuilder.Where(selectBuilder.Equal("user_id", userId)).
+		BuildWithFlavor(sqlbuilder.PostgreSQL)
+	rows, err := o.dbPool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	res := make([]Order, 0)
+	for rows.Next() {
+		var order Order
+		err := rows.Scan(OrderStruct.Addr(&order)...)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, order)
+	}
+
+	return res, nil
+}
+
+func (o *OrderRepository) GetByUserEmail(ctx context.Context, userEmail string) ([]Order, error) {
+	selectBuilder := OrderStruct.SelectFrom("orders")
+	sql, args := selectBuilder.JoinWithOption(sqlbuilder.LeftJoin, "users", "orders.user_id = users.id").
+		Where(selectBuilder.Equal("users.email", userEmail)).
+		BuildWithFlavor(sqlbuilder.PostgreSQL)
+	rows, err := o.dbPool.Query(ctx, sql, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	res := make([]Order, 0)
+	for rows.Next() {
+		var order Order
+		err := rows.Scan(OrderStruct.Addr(&order)...)
+		if err != nil {
+			return nil, err
+		}
+		res = append(res, order)
+	}
+
+	return res, nil
 }
 
 func (o *OrderRepository) generateNextOrderId(ctx context.Context, tx pgx.Tx) (int, error) {
