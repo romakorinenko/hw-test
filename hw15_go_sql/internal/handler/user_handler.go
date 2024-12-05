@@ -51,8 +51,7 @@ func (h *UserHandler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user.ID = createdUser.ID
-	userJson, err := json.Marshal(user)
+	userJson, err := json.Marshal(createdUser)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

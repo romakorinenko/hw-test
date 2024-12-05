@@ -37,7 +37,7 @@ func (u *UserRepository) Create(ctx context.Context, user *User) (*User, error) 
 	if err != nil {
 		return nil, err
 	}
-	user.ID = int(userId)
+	user.ID = userId
 
 	sql, args := UserStruct.InsertInto("users", user).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
@@ -120,7 +120,7 @@ func (u *UserRepository) DeleteById(ctx context.Context, userId int) error {
 	return nil
 }
 
-func (u *UserRepository) generateNextUserId(ctx context.Context) (int64, error) {
+func (u *UserRepository) generateNextUserId(ctx context.Context) (int, error) {
 	rows, err := u.dbPool.Query(ctx, fmt.Sprintf("SELECT nextval('%s')", "users_sequence"))
 
 	if err != nil {
@@ -129,7 +129,7 @@ func (u *UserRepository) generateNextUserId(ctx context.Context) (int64, error) 
 	defer rows.Close()
 
 	if rows.Next() {
-		var id int64
+		var id int
 		err = rows.Scan(&id)
 		if err != nil {
 			return 0, err

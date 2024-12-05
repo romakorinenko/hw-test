@@ -51,8 +51,7 @@ func (h *ProductHandler) create(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product.ID = createdProduct.ID
-	productJson, err := json.Marshal(product)
+	productJson, err := json.Marshal(createdProduct)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

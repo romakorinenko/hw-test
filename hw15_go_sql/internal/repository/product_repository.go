@@ -36,7 +36,7 @@ func (p *ProductRepository) Create(ctx context.Context, product *Product) (*Prod
 	if err != nil {
 		return nil, err
 	}
-	product.ID = int(productId)
+	product.ID = productId
 
 	sql, args := ProductStruct.InsertInto("products", product).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
@@ -117,7 +117,7 @@ func (p *ProductRepository) DeleteById(ctx context.Context, productId int) error
 	return nil
 }
 
-func (p *ProductRepository) generateNextProductId(ctx context.Context) (int64, error) {
+func (p *ProductRepository) generateNextProductId(ctx context.Context) (int, error) {
 	rows, err := p.dbPool.Query(ctx, fmt.Sprintf("SELECT nextval('%s')", "products_sequence"))
 
 	if err != nil {
@@ -126,7 +126,7 @@ func (p *ProductRepository) generateNextProductId(ctx context.Context) (int64, e
 	defer rows.Close()
 
 	if rows.Next() {
-		var id int64
+		var id int
 		err = rows.Scan(&id)
 		if err != nil {
 			return 0, err

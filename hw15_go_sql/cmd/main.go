@@ -3,8 +3,8 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/config"
+	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/dbpool"
 	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/handler"
 	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/repository"
 	"log"
@@ -20,7 +20,7 @@ func main() {
 	host := cfg.Server.Host
 	port := cfg.Server.Port
 
-	dbPool, err := NewDbPool(context.Background(), cfg.Db)
+	dbPool, err := dbpool.NewDbPool(context.Background(), cfg.Db)
 	if err != nil {
 		log.Fatalln("cannot create dbPool", err)
 	}
@@ -34,16 +34,12 @@ func main() {
 	mux.HandleFunc("/products", productHandler.Handle)
 	mux.HandleFunc("/products/all", productHandler.GetAll)
 
-	//orderHandler := handler.NewOrderHandler(repository.NewOrderRepository(dbPool))
-	////mux.HandleFunc("/orders", orderHandler.CreateOrderHandler)
-	////mux.HandleFunc("/orders", orderHandler.DeleteOrderHandler)
-	//mux.HandleFunc("/orders/byuser/{userId}", orderHandler.GetOrdersByUserId)
-	//
+	orderHandler := handler.NewOrderHandler(repository.NewOrderRepository(dbPool))
+	mux.HandleFunc("/orders", orderHandler.Handle)
+	//mux.HandleFunc("/orders/byuser", orderHandler.GetOrdersByUserId)
+
 	//userStatHandler := handler.NewUserStatHandler(repository.NewUserStatRepository(dbPool))
 	//mux.HandleFunc("/user-stat/{id}", userStatHandler.GetUserStatById)
-
-	//mux.HandleFunc("POST /order-products/add", nil) // не надо реализовывать, прописать в логике репозитория
-	//mux.HandleFunc("DELETE /order-products/remove", nil)
 
 	server := &http.Server{
 		Addr:              fmt.Sprintf("%s:%d", host, port),
@@ -56,18 +52,6 @@ func main() {
 	}()
 
 	_ = gracefulShutdown(server)
-}
-
-func NewDbPool(ctx context.Context, dbCfg *config.Db) (*pgxpool.Pool, error) {
-	dbConfig, err := pgxpool.ParseConfig(dbCfg.ConnectionString)
-	if err != nil {
-		return nil, err
-	}
-	dbPool, err := pgxpool.NewWithConfig(ctx, dbConfig)
-	if err != nil {
-		return nil, err
-	}
-	return dbPool, nil
 }
 
 func gracefulShutdown(server *http.Server) error {
