@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -16,10 +17,10 @@ type User struct {
 
 type IUserRepository interface {
 	Create(ctx context.Context, user *User) (*User, error)
-	GetById(ctx context.Context, userId int) (*User, error)
+	GetByID(ctx context.Context, userId int) (*User, error)
 	GetAll(ctx context.Context) ([]User, error)
 	Update(ctx context.Context, user *User) (*User, error)
-	DeleteById(ctx context.Context, userId int) error
+	DeleteByID(ctx context.Context, userId int) error
 }
 
 type UserRepository struct {
@@ -33,7 +34,7 @@ func NewUserRepository(dbPool *pgxpool.Pool) IUserRepository {
 var UserStruct = sqlbuilder.NewStruct(new(User))
 
 func (u *UserRepository) Create(ctx context.Context, user *User) (*User, error) {
-	userId, err := u.generateNextUserId(ctx)
+	userId, err := u.generateNextUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -41,17 +42,15 @@ func (u *UserRepository) Create(ctx context.Context, user *User) (*User, error) 
 
 	sql, args := UserStruct.InsertInto("users", user).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
-
 	_ = u.dbPool.QueryRow(ctx, sql, args...)
 
 	return user, nil
 }
 
-func (u *UserRepository) GetById(ctx context.Context, userId int) (*User, error) {
+func (u *UserRepository) GetByID(ctx context.Context, userId int) (*User, error) {
 	selectBuilder := UserStruct.SelectFrom("users")
 	sql, args := selectBuilder.Where(selectBuilder.Equal("id", userId)).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
-
 	row := u.dbPool.QueryRow(ctx, sql, args...)
 
 	var user User
@@ -106,7 +105,7 @@ func (u *UserRepository) Update(ctx context.Context, user *User) (*User, error) 
 	return user, nil
 }
 
-func (u *UserRepository) DeleteById(ctx context.Context, userId int) error {
+func (u *UserRepository) DeleteByID(ctx context.Context, userId int) error {
 	deleteBuilder := UserStruct.DeleteFrom("users")
 	sql, args := deleteBuilder.Where(deleteBuilder.Equal("id", userId)).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
@@ -119,7 +118,7 @@ func (u *UserRepository) DeleteById(ctx context.Context, userId int) error {
 	return nil
 }
 
-func (u *UserRepository) generateNextUserId(ctx context.Context) (int, error) {
+func (u *UserRepository) generateNextUserID(ctx context.Context) (int, error) {
 	rows, err := u.dbPool.Query(ctx, fmt.Sprintf("SELECT nextval('%s')", "users_sequence"))
 
 	if err != nil {

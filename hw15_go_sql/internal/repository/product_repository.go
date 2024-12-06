@@ -3,6 +3,7 @@ package repository
 import (
 	"context"
 	"fmt"
+
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
@@ -15,10 +16,10 @@ type Product struct {
 
 type IProductRepository interface {
 	Create(ctx context.Context, product *Product) (*Product, error)
-	GetById(ctx context.Context, productId int) (*Product, error)
+	GetByID(ctx context.Context, productId int) (*Product, error)
 	GetAll(ctx context.Context) ([]Product, error)
 	Update(ctx context.Context, product *Product) (*Product, error)
-	DeleteById(ctx context.Context, productId int) error
+	DeleteByID(ctx context.Context, productId int) error
 }
 
 type ProductRepository struct {
@@ -32,7 +33,7 @@ func NewProductRepository(dbPool *pgxpool.Pool) IProductRepository {
 var ProductStruct = sqlbuilder.NewStruct(new(Product))
 
 func (p *ProductRepository) Create(ctx context.Context, product *Product) (*Product, error) {
-	productId, err := p.generateNextProductId(ctx)
+	productId, err := p.generateNextProductID(ctx)
 	if err != nil {
 		return nil, err
 	}
@@ -46,7 +47,7 @@ func (p *ProductRepository) Create(ctx context.Context, product *Product) (*Prod
 	return product, nil
 }
 
-func (p *ProductRepository) GetById(ctx context.Context, productId int) (*Product, error) {
+func (p *ProductRepository) GetByID(ctx context.Context, productId int) (*Product, error) {
 	selectBuilder := ProductStruct.SelectFrom("products")
 	sql, args := selectBuilder.Where(selectBuilder.Equal("id", productId)).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
@@ -104,7 +105,7 @@ func (p *ProductRepository) Update(ctx context.Context, product *Product) (*Prod
 	return product, nil
 }
 
-func (p *ProductRepository) DeleteById(ctx context.Context, productId int) error {
+func (p *ProductRepository) DeleteByID(ctx context.Context, productId int) error {
 	deleteBuilder := ProductStruct.DeleteFrom("products")
 	sql, args := deleteBuilder.Where(deleteBuilder.Equal("id", productId)).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
@@ -117,7 +118,7 @@ func (p *ProductRepository) DeleteById(ctx context.Context, productId int) error
 	return nil
 }
 
-func (p *ProductRepository) generateNextProductId(ctx context.Context) (int, error) {
+func (p *ProductRepository) generateNextProductID(ctx context.Context) (int, error) {
 	rows, err := p.dbPool.Query(ctx, fmt.Sprintf("SELECT nextval('%s')", "products_sequence"))
 
 	if err != nil {

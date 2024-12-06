@@ -3,10 +3,11 @@ package repository
 import (
 	"context"
 	"fmt"
+	"time"
+
 	"github.com/huandu/go-sqlbuilder"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
-	"time"
 )
 
 type Order struct {
@@ -27,9 +28,9 @@ type UserStatistics struct {
 type IOrderRepository interface {
 	Create(ctx context.Context, order *Order) (*Order, error)
 	DeleteById(ctx context.Context, orderId int) error
-	GetByUserId(ctx context.Context, userId int) ([]Order, error)
+	GetByUserID(ctx context.Context, userId int) ([]Order, error)
 	GetByUserEmail(ctx context.Context, userEmail string) ([]Order, error)
-	GetStatisticsById(ctx context.Context, userId int) (*UserStatistics, error)
+	GetStatisticsByID(ctx context.Context, userId int) (*UserStatistics, error)
 }
 
 type OrderRepository struct {
@@ -58,7 +59,7 @@ func (o *OrderRepository) Create(ctx context.Context, order *Order) (*Order, err
 		_ = tx.Rollback(ctx)
 	}()
 
-	orderId, err := o.generateNextOrderId(ctx, tx)
+	orderId, err := o.generateNextOrderID(ctx, tx)
 	if err != nil {
 		return nil, err
 	}
@@ -71,7 +72,7 @@ func (o *OrderRepository) Create(ctx context.Context, order *Order) (*Order, err
 	_ = row.Scan()
 
 	for _, productId := range order.ProductIds {
-		err := o.OrderProductRepository.Create(ctx, tx, int(orderId), productId)
+		err := o.OrderProductRepository.Create(ctx, tx, orderId, productId)
 		if err != nil {
 			return nil, err
 		}
@@ -111,7 +112,7 @@ func (o *OrderRepository) DeleteById(ctx context.Context, orderId int) error {
 	return nil
 }
 
-func (o *OrderRepository) GetByUserId(ctx context.Context, userId int) ([]Order, error) {
+func (o *OrderRepository) GetByUserID(ctx context.Context, userId int) ([]Order, error) {
 	selectBuilder := OrderStruct.SelectFrom("orders")
 	sql, args := selectBuilder.Where(selectBuilder.Equal("user_id", userId)).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
@@ -158,7 +159,7 @@ func (o *OrderRepository) GetByUserEmail(ctx context.Context, userEmail string) 
 	return res, nil
 }
 
-func (o *OrderRepository) GetStatisticsById(ctx context.Context, userId int) (*UserStatistics, error) {
+func (o *OrderRepository) GetStatisticsByID(ctx context.Context, userId int) (*UserStatistics, error) {
 	selectBuilder := sqlbuilder.NewSelectBuilder()
 	sql, args := selectBuilder.Select("users.name", "COUNT(*) AS total_orders", "SUM(orders.total_amount) AS total_amount", "AVG(products.price) AS avg_price").
 		From("orders").
@@ -168,7 +169,6 @@ func (o *OrderRepository) GetStatisticsById(ctx context.Context, userId int) (*U
 		GroupBy("users.id").Asc().
 		Having(selectBuilder.Equal("users.id", userId)).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
-
 	row := o.dbPool.QueryRow(ctx, sql, args...)
 
 	var userStatistics UserStatistics
@@ -176,11 +176,10 @@ func (o *OrderRepository) GetStatisticsById(ctx context.Context, userId int) (*U
 	if err != nil {
 		return nil, err
 	}
-
 	return &userStatistics, nil
 }
 
-func (o *OrderRepository) generateNextOrderId(ctx context.Context, tx pgx.Tx) (int, error) {
+func (o *OrderRepository) generateNextOrderID(ctx context.Context, tx pgx.Tx) (int, error) {
 	rows, err := tx.Query(ctx, fmt.Sprintf("SELECT nextval('%s')", "orders_sequence"))
 
 	if err != nil {

@@ -2,6 +2,7 @@ package config
 
 import (
 	"gopkg.in/yaml.v3"
+	"log"
 	"os"
 )
 
@@ -10,7 +11,7 @@ const defaultConfigFilePath = "configs/config.yaml"
 func MustLoadConfig() *Config {
 	file, err := os.Open(defaultConfigFilePath)
 	if err != nil {
-		panic(err)
+		log.Fatalln(err)
 	}
 	defer func() {
 		_ = file.Close()

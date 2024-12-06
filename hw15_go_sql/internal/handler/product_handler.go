@@ -3,10 +3,11 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/repository"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/repository"
 )
 
 type IProductHandler interface {
@@ -98,7 +99,7 @@ func (h *ProductHandler) deleteByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.productRepository.DeleteById(context.Background(), productId)
+	err = h.productRepository.DeleteByID(context.Background(), productId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -115,7 +116,7 @@ func (h *ProductHandler) getByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	product, err := h.productRepository.GetById(context.Background(), productId)
+	product, err := h.productRepository.GetByID(context.Background(), productId)
 	productJson, err := json.Marshal(product)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)

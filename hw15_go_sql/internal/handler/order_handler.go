@@ -98,7 +98,7 @@ func (h *OrderHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	orders, err := h.orderRepository.GetByUserId(context.Background(), userId)
+	orders, err := h.orderRepository.GetByUserID(context.Background(), userId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -154,7 +154,7 @@ func (h *OrderHandler) GetStatistics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userStat, err := h.orderRepository.GetStatisticsById(context.Background(), userId)
+	userStat, err := h.orderRepository.GetStatisticsByID(context.Background(), userId)
 
 	userStatJson, err := json.Marshal(userStat)
 	if err != nil {

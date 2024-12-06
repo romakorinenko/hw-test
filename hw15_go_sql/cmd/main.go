@@ -3,7 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/config"
+	"github.com/romakorinenko/hw-test/hw15_go_sql/configs"
 	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/dbpool"
 	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/handler"
 	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/repository"
@@ -16,7 +16,7 @@ import (
 )
 
 func main() {
-	cfg := config.MustLoadConfig()
+	cfg := configs.MustLoadConfig()
 	host := cfg.Server.Host
 	port := cfg.Server.Port
 

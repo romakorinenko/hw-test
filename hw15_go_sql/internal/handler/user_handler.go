@@ -3,10 +3,11 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/repository"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/repository"
 )
 
 type IUserHandler interface {
@@ -98,7 +99,7 @@ func (h *UserHandler) deleteByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	err = h.userRepository.DeleteById(context.Background(), userId)
+	err = h.userRepository.DeleteByID(context.Background(), userId)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -115,7 +116,7 @@ func (h *UserHandler) getByID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	user, err := h.userRepository.GetById(context.Background(), userId)
+	user, err := h.userRepository.GetByID(context.Background(), userId)
 	userJson, err := json.Marshal(user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
