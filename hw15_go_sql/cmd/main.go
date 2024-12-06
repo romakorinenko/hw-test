@@ -3,21 +3,21 @@ package main
 import (
 	"context"
 	"fmt"
-	"github.com/romakorinenko/hw-test/hw15_go_sql/configs"
-	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/dbpool"
-	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/handler"
-	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/repository"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"syscall"
 	"time"
+
+	"github.com/romakorinenko/hw-test/hw15_go_sql/configs"
+	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/dbpool"
+	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/handler"
+	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/repository"
 )
 
 func main() {
 	cfg := configs.MustLoadConfig()
-	host := cfg.Server.Host
 	port := cfg.Server.Port
 
 	dbPool, err := dbpool.NewDbPool(context.Background(), cfg.Db)
@@ -41,11 +41,12 @@ func main() {
 	mux.HandleFunc("/orders/user-statistics", orderHandler.GetStatistics)
 
 	server := &http.Server{
-		Addr:              fmt.Sprintf("%s:%d", host, port),
+		Addr:              fmt.Sprintf(":%d", port),
 		Handler:           mux,
 		ReadHeaderTimeout: cfg.Server.ReadHeaderTimeout,
 	}
 
+	log.Println("server started on port: ", port)
 	go func() {
 		_ = server.ListenAndServe()
 	}()

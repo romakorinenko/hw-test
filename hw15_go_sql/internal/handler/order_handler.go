@@ -3,10 +3,11 @@ package handler
 import (
 	"context"
 	"encoding/json"
-	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/repository"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/repository"
 )
 
 type IOrderHandler interface {

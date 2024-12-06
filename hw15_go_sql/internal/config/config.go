@@ -8,7 +8,6 @@ type Config struct {
 }
 
 type Server struct {
-	Host              string        `yaml:"host"`
 	Port              int           `yaml:"port"`
 	ReadHeaderTimeout time.Duration `yaml:"readHeaderTimeout"`
 }

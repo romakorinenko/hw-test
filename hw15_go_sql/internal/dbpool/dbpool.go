@@ -2,6 +2,7 @@ package dbpool
 
 import (
 	"context"
+
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/config"
 )
