@@ -13,6 +13,7 @@ type IOrderHandler interface {
 	Handle(w http.ResponseWriter, r *http.Request)
 	GetByUserID(w http.ResponseWriter, r *http.Request)
 	GetByUserEmail(w http.ResponseWriter, r *http.Request)
+	GetStatistics(w http.ResponseWriter, r *http.Request)
 }
 
 type OrderHandler struct {
@@ -134,6 +135,35 @@ func (h *OrderHandler) GetByUserEmail(w http.ResponseWriter, r *http.Request) {
 
 	w.WriteHeader(http.StatusOK)
 	_, err = w.Write(ordersJson)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *OrderHandler) GetStatistics(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodGet {
+		http.Error(w, "", http.StatusMethodNotAllowed)
+		return
+	}
+
+	userIdString := r.URL.Query().Get("id")
+	userId, err := strconv.Atoi(userIdString)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	userStat, err := h.orderRepository.GetStatisticsById(context.Background(), userId)
+
+	userStatJson, err := json.Marshal(userStat)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
+	_, err = w.Write(userStatJson)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

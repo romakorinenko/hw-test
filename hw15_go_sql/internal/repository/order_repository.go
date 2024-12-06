@@ -17,11 +17,19 @@ type Order struct {
 	ProductIds  []int     `db:"-" json:"productIds"`
 }
 
+type UserStatistics struct {
+	Name         string  `db:"name" json:"userName"`
+	TotalAmount  float32 `db:"total_amount" json:"totalAmount"`
+	TotalOrders  string  `db:"total_orders" json:"totalOrders"`
+	AveragePrice float32 `db:"avg_price" json:"averagePrice"`
+}
+
 type IOrderRepository interface {
 	Create(ctx context.Context, order *Order) (*Order, error)
 	DeleteById(ctx context.Context, orderId int) error
 	GetByUserId(ctx context.Context, userId int) ([]Order, error)
 	GetByUserEmail(ctx context.Context, userEmail string) ([]Order, error)
+	GetStatisticsById(ctx context.Context, userId int) (*UserStatistics, error)
 }
 
 type OrderRepository struct {
@@ -30,6 +38,7 @@ type OrderRepository struct {
 }
 
 var OrderStruct = sqlbuilder.NewStruct(new(Order))
+var UserStatisticsStruct = sqlbuilder.NewStruct(new(UserStatistics))
 
 func NewOrderRepository(dbPool *pgxpool.Pool) IOrderRepository {
 	return &OrderRepository{dbPool: dbPool, OrderProductRepository: NewOrderProductRepository()}
@@ -147,6 +156,28 @@ func (o *OrderRepository) GetByUserEmail(ctx context.Context, userEmail string) 
 	}
 
 	return res, nil
+}
+
+func (o *OrderRepository) GetStatisticsById(ctx context.Context, userId int) (*UserStatistics, error) {
+	selectBuilder := sqlbuilder.NewSelectBuilder()
+	sql, args := selectBuilder.Select("users.name", "COUNT(*) AS total_orders", "SUM(orders.total_amount) AS total_amount", "AVG(products.price) AS avg_price").
+		From("orders").
+		JoinWithOption("order_products", "orders.id = order_products.order_id").
+		JoinWithOption("products", "order_products.product_id = products.id").
+		JoinWithOption("users", "orders.user_id = users.id").
+		GroupBy("users.id").Asc().
+		Having(selectBuilder.Equal("users.id", userId)).
+		BuildWithFlavor(sqlbuilder.PostgreSQL)
+
+	row := o.dbPool.QueryRow(ctx, sql, args...)
+
+	var userStatistics UserStatistics
+	err := row.Scan(UserStatisticsStruct.Addr(&userStatistics)...)
+	if err != nil {
+		return nil, err
+	}
+
+	return &userStatistics, nil
 }
 
 func (o *OrderRepository) generateNextOrderId(ctx context.Context, tx pgx.Tx) (int, error) {

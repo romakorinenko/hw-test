@@ -38,9 +38,7 @@ func main() {
 	mux.HandleFunc("/orders", orderHandler.Handle)
 	mux.HandleFunc("/orders/byuserid", orderHandler.GetByUserID)
 	mux.HandleFunc("/orders/byuseremail", orderHandler.GetByUserEmail)
-
-	//userStatHandler := handler.NewUserStatHandler(repository.NewUserStatRepository(dbPool))
-	//mux.HandleFunc("/user-stat/{id}", userStatHandler.GetUserStatById)
+	mux.HandleFunc("/orders/user-statistics", orderHandler.GetStatistics)
 
 	server := &http.Server{
 		Addr:              fmt.Sprintf("%s:%d", host, port),

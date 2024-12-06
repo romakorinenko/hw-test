@@ -64,7 +64,6 @@ func (u *UserRepository) GetById(ctx context.Context, userId int) (*User, error)
 }
 
 func (u *UserRepository) GetAll(ctx context.Context) ([]User, error) {
-
 	sql, _ := UserStruct.SelectFrom("users").
 		OrderBy("id").
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
