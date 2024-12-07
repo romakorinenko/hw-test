@@ -26,107 +26,111 @@ func NewUserHandler(userRepository repository.IUserRepository) IUserHandler {
 func (h *UserHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	log.Println("received request: ", r.Method, r.URL.Path)
 
+	var response *Response
+	var err error
+
 	switch r.Method {
 	case http.MethodPost:
-		h.create(w, r)
+		response, err = h.create(r)
 	case http.MethodGet:
-		h.getByID(w, r)
+		response, err = h.getByID(r)
 	case http.MethodPut:
-		h.update(w, r)
+		response, err = h.update(r)
 	case http.MethodDelete:
-		h.deleteByID(w, r)
+		response, err = h.deleteByID(r)
 	}
-}
 
-func (h *UserHandler) create(w http.ResponseWriter, r *http.Request) {
-	var user repository.User
-	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	w.WriteHeader(response.StatusCode)
+	if _, err = w.Write(response.Body); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *UserHandler) create(r *http.Request) (*Response, error) {
+	var user repository.User
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		return nil, err
 	}
 
 	createdUser, err := h.userRepository.Create(context.Background(), &user)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
 	userJson, err := json.Marshal(createdUser)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
-	_, err = w.Write(userJson)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusCreated)
+
+	return &Response{
+		StatusCode: http.StatusCreated,
+		Body:       userJson,
+	}, nil
 }
 
-func (h *UserHandler) update(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) update(r *http.Request) (*Response, error) {
 	var user repository.User
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
 	updatedUser, err := h.userRepository.Update(context.Background(), &user)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
-	w.WriteHeader(http.StatusCreated)
+
 	userJson, err := json.Marshal(updatedUser)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
-	_, err = w.Write(userJson)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+
+	return &Response{
+		StatusCode: http.StatusOK,
+		Body:       userJson,
+	}, nil
 }
 
-func (h *UserHandler) deleteByID(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) deleteByID(r *http.Request) (*Response, error) {
 	userIdString := r.URL.Query().Get("id")
 	userId, err := strconv.Atoi(userIdString)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
 	err = h.userRepository.DeleteByID(context.Background(), userId)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
-
-	w.WriteHeader(http.StatusOK)
+	return &Response{
+		StatusCode: http.StatusOK,
+	}, nil
 }
 
-func (h *UserHandler) getByID(w http.ResponseWriter, r *http.Request) {
+func (h *UserHandler) getByID(r *http.Request) (*Response, error) {
 	userIdString := r.URL.Query().Get("id")
 	userId, err := strconv.Atoi(userIdString)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
 	user, err := h.userRepository.GetByID(context.Background(), userId)
 	userJson, err := json.Marshal(user)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
-	_, err = w.Write(userJson)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
+
+	return &Response{
+		StatusCode: http.StatusOK,
+		Body:       userJson,
+	}, nil
 }
 
 func (h *UserHandler) GetAll(w http.ResponseWriter, r *http.Request) {

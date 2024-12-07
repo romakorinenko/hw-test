@@ -26,107 +26,118 @@ func NewProductHandler(productRepository repository.IProductRepository) IProduct
 func (h *ProductHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	log.Println("received request: ", r.Method, r.URL.Path)
 
+	var response *Response
+	var err error
+
 	switch r.Method {
 	case http.MethodPost:
-		h.create(w, r)
+		response, err = h.create(r)
 	case http.MethodGet:
-		h.getByID(w, r)
+		response, err = h.getByID(r)
 	case http.MethodPut:
-		h.update(w, r)
+		response, err = h.update(r)
 	case http.MethodDelete:
-		h.deleteByID(w, r)
+		response, err = h.deleteByID(r)
 	}
-}
 
-func (h *ProductHandler) create(w http.ResponseWriter, r *http.Request) {
-	var product repository.Product
-	err := json.NewDecoder(r.Body).Decode(&product)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	w.WriteHeader(response.StatusCode)
+	if _, err = w.Write(response.Body); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *ProductHandler) create(r *http.Request) (*Response, error) {
+	var product repository.Product
+	err := json.NewDecoder(r.Body).Decode(&product)
+	if err != nil {
+		return nil, err
 	}
 
 	createdProduct, err := h.productRepository.Create(context.Background(), &product)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
-	productJson, err := json.Marshal(createdProduct)
+	productJSON, err := json.Marshal(createdProduct)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
-	_, err = w.Write(productJson)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
-	w.WriteHeader(http.StatusCreated)
+	return &Response{
+		StatusCode: http.StatusCreated,
+		Body:       productJSON,
+	}, nil
 }
 
-func (h *ProductHandler) update(w http.ResponseWriter, r *http.Request) {
+func (h *ProductHandler) update(r *http.Request) (*Response, error) {
 	var product repository.Product
 	err := json.NewDecoder(r.Body).Decode(&product)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
 	updatedProduct, err := h.productRepository.Update(context.Background(), &product)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
-	w.WriteHeader(http.StatusCreated)
-	productJson, err := json.Marshal(updatedProduct)
+
+	productJSON, err := json.Marshal(updatedProduct)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
-	_, err = w.Write(productJson)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
+	return &Response{
+		StatusCode: http.StatusCreated,
+		Body:       productJSON,
+	}, nil
 }
 
-func (h *ProductHandler) deleteByID(w http.ResponseWriter, r *http.Request) {
+func (h *ProductHandler) deleteByID(r *http.Request) (*Response, error) {
 	productIdString := r.URL.Query().Get("id")
 	productId, err := strconv.Atoi(productIdString)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
 	err = h.productRepository.DeleteByID(context.Background(), productId)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
-	w.WriteHeader(http.StatusOK)
+	return &Response{
+		StatusCode: http.StatusCreated,
+	}, nil
 }
 
-func (h *ProductHandler) getByID(w http.ResponseWriter, r *http.Request) {
+func (h *ProductHandler) getByID(r *http.Request) (*Response, error) {
 	productIdString := r.URL.Query().Get("id")
 	productId, err := strconv.Atoi(productIdString)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
 	product, err := h.productRepository.GetByID(context.Background(), productId)
-	productJson, err := json.Marshal(product)
+	productJSON, err := json.Marshal(product)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
-	_, err = w.Write(productJson)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
+	return &Response{
+		StatusCode: http.StatusCreated,
+		Body:       productJSON,
+	}, nil
 }
 
 func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
