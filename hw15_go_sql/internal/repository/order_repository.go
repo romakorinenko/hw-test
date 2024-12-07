@@ -20,8 +20,8 @@ type Order struct {
 
 type UserStatistics struct {
 	Name         string  `db:"name" json:"userName"`
+	TotalOrders  int     `db:"total_orders" json:"totalOrders"`
 	TotalAmount  float32 `db:"total_amount" json:"totalAmount"`
-	TotalOrders  string  `db:"total_orders" json:"totalOrders"`
 	AveragePrice float32 `db:"avg_price" json:"averagePrice"`
 }
 
@@ -161,13 +161,13 @@ func (o *OrderRepository) GetByUserEmail(ctx context.Context, userEmail string) 
 
 func (o *OrderRepository) GetStatisticsByID(ctx context.Context, userId int) (*UserStatistics, error) {
 	selectBuilder := sqlbuilder.NewSelectBuilder()
-	sql, args := selectBuilder.Select("users.name", "COUNT(*) AS total_orders", "SUM(orders.total_amount) AS total_amount", "AVG(products.price) AS avg_price").
+	sql, args := selectBuilder.Select("users.name", "COUNT(DISTINCT orders.id) AS total_orders", "SUM(products.price) AS total_amount", "AVG(products.price) AS avg_price").
 		From("orders").
-		JoinWithOption("order_products", "orders.id = order_products.order_id").
-		JoinWithOption("products", "order_products.product_id = products.id").
-		JoinWithOption("users", "orders.user_id = users.id").
-		GroupBy("users.id").Asc().
-		Having(selectBuilder.Equal("users.id", userId)).
+		Join("order_products", "orders.id = order_products.order_id").
+		Join("products", "order_products.product_id = products.id").
+		Join("users", "orders.user_id = users.id").
+		Where(selectBuilder.Equal("users.id", userId)).
+		GroupBy("users.id", "users.name").
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 	row := o.dbPool.QueryRow(ctx, sql, args...)
 

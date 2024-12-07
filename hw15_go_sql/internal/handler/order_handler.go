@@ -28,9 +28,12 @@ func NewOrderHandler(orderRepository repository.IOrderRepository) IOrderHandler 
 func (h *OrderHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	log.Println("received request: ", r.Method, r.URL.Path)
 
+	var response *Response
+	var err error
+
 	switch r.Method {
 	case http.MethodPost:
-		h.create(w, r)
+		response, err = h.create(r)
 	case http.MethodGet:
 		http.Error(w, "", http.StatusMethodNotAllowed)
 		return
@@ -38,52 +41,59 @@ func (h *OrderHandler) Handle(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "", http.StatusMethodNotAllowed)
 		return
 	case http.MethodDelete:
-		h.deleteByID(w, r)
+		response, err = h.deleteByID(r)
 	}
-}
 
-func (h *OrderHandler) create(w http.ResponseWriter, r *http.Request) {
-	var order repository.Order
-	err := json.NewDecoder(r.Body).Decode(&order)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
+	}
+
+	w.WriteHeader(response.StatusCode)
+	if _, err = w.Write(response.Body); err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+}
+
+func (h *OrderHandler) create(r *http.Request) (*Response, error) {
+	var order repository.Order
+	err := json.NewDecoder(r.Body).Decode(&order)
+	if err != nil {
+		return nil, err
 	}
 
 	createdOrder, err := h.orderRepository.Create(context.Background(), &order)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
-	orderJson, err := json.Marshal(createdOrder)
+	orderJSON, err := json.Marshal(createdOrder)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
-	_, err = w.Write(orderJson)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
-	}
-	w.WriteHeader(http.StatusCreated)
+
+	return &Response{
+		StatusCode: http.StatusCreated,
+		Body:       orderJSON,
+	}, nil
 }
 
-func (h *OrderHandler) deleteByID(w http.ResponseWriter, r *http.Request) {
+func (h *OrderHandler) deleteByID(r *http.Request) (*Response, error) {
 	orderIdString := r.URL.Query().Get("id")
 	productId, err := strconv.Atoi(orderIdString)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
 	err = h.orderRepository.DeleteById(context.Background(), productId)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil, err
 	}
 
-	w.WriteHeader(http.StatusOK)
+	return &Response{
+		StatusCode: http.StatusCreated,
+	}, nil
 }
 
 func (h *OrderHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
