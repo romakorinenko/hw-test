@@ -64,14 +64,14 @@ func (h *UserHandler) create(r *http.Request) (*Response, error) {
 		return nil, err
 	}
 
-	userJson, err := json.Marshal(createdUser)
+	userJSON, err := json.Marshal(createdUser)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Response{
 		StatusCode: http.StatusCreated,
-		Body:       userJson,
+		Body:       userJSON,
 	}, nil
 }
 
@@ -87,25 +87,25 @@ func (h *UserHandler) update(r *http.Request) (*Response, error) {
 		return nil, err
 	}
 
-	userJson, err := json.Marshal(updatedUser)
+	userJSON, err := json.Marshal(updatedUser)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Response{
 		StatusCode: http.StatusOK,
-		Body:       userJson,
+		Body:       userJSON,
 	}, nil
 }
 
 func (h *UserHandler) deleteByID(r *http.Request) (*Response, error) {
-	userIdString := r.URL.Query().Get("id")
-	userId, err := strconv.Atoi(userIdString)
+	userIDString := r.URL.Query().Get("id")
+	userID, err := strconv.Atoi(userIDString)
 	if err != nil {
 		return nil, err
 	}
 
-	err = h.userRepository.DeleteByID(context.Background(), userId)
+	err = h.userRepository.DeleteByID(context.Background(), userID)
 	if err != nil {
 		return nil, err
 	}
@@ -115,21 +115,21 @@ func (h *UserHandler) deleteByID(r *http.Request) (*Response, error) {
 }
 
 func (h *UserHandler) getByID(r *http.Request) (*Response, error) {
-	userIdString := r.URL.Query().Get("id")
-	userId, err := strconv.Atoi(userIdString)
+	userIDString := r.URL.Query().Get("id")
+	userID, err := strconv.Atoi(userIDString)
 	if err != nil {
 		return nil, err
 	}
 
-	user, err := h.userRepository.GetByID(context.Background(), userId)
-	userJson, err := json.Marshal(user)
+	user, err := h.userRepository.GetByID(context.Background(), userID)
+	userJSON, err := json.Marshal(user)
 	if err != nil {
 		return nil, err
 	}
 
 	return &Response{
 		StatusCode: http.StatusOK,
-		Body:       userJson,
+		Body:       userJSON,
 	}, nil
 }
 
@@ -145,14 +145,14 @@ func (h *UserHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userJson, err := json.Marshal(users)
+	userJSON, err := json.Marshal(users)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	_, err = w.Write(userJson)
+	_, err = w.Write(userJSON)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

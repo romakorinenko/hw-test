@@ -7,14 +7,14 @@ import (
 	"github.com/romakorinenko/hw-test/hw15_go_sql/internal/config"
 )
 
-func NewDbPool(ctx context.Context, dbCfg *config.Db) (*pgxpool.Pool, error) {
-	dbConfig, err := pgxpool.ParseConfig(dbCfg.ConnectionString)
+func NewDBPool(ctx context.Context, dBCfg *config.DB) (*pgxpool.Pool, error) {
+	DBConfig, err := pgxpool.ParseConfig(dBCfg.ConnectionString)
 	if err != nil {
 		return nil, err
 	}
-	dbPool, err := pgxpool.NewWithConfig(ctx, dbConfig)
+	DBPool, err := pgxpool.NewWithConfig(ctx, DBConfig)
 	if err != nil {
 		return nil, err
 	}
-	return dbPool, nil
+	return DBPool, nil
 }

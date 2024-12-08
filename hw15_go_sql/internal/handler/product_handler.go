@@ -68,9 +68,6 @@ func (h *ProductHandler) create(r *http.Request) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err != nil {
-		return nil, err
-	}
 	return &Response{
 		StatusCode: http.StatusCreated,
 		Body:       productJSON,
@@ -93,9 +90,6 @@ func (h *ProductHandler) update(r *http.Request) (*Response, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err != nil {
-		return nil, err
-	}
 	return &Response{
 		StatusCode: http.StatusCreated,
 		Body:       productJSON,
@@ -103,13 +97,13 @@ func (h *ProductHandler) update(r *http.Request) (*Response, error) {
 }
 
 func (h *ProductHandler) deleteByID(r *http.Request) (*Response, error) {
-	productIdString := r.URL.Query().Get("id")
-	productId, err := strconv.Atoi(productIdString)
+	productIDString := r.URL.Query().Get("id")
+	productID, err := strconv.Atoi(productIDString)
 	if err != nil {
 		return nil, err
 	}
 
-	err = h.productRepository.DeleteByID(context.Background(), productId)
+	err = h.productRepository.DeleteByID(context.Background(), productID)
 	if err != nil {
 		return nil, err
 	}
@@ -120,17 +114,14 @@ func (h *ProductHandler) deleteByID(r *http.Request) (*Response, error) {
 }
 
 func (h *ProductHandler) getByID(r *http.Request) (*Response, error) {
-	productIdString := r.URL.Query().Get("id")
-	productId, err := strconv.Atoi(productIdString)
+	productIDString := r.URL.Query().Get("id")
+	productID, err := strconv.Atoi(productIDString)
 	if err != nil {
 		return nil, err
 	}
 
-	product, err := h.productRepository.GetByID(context.Background(), productId)
+	product, err := h.productRepository.GetByID(context.Background(), productID)
 	productJSON, err := json.Marshal(product)
-	if err != nil {
-		return nil, err
-	}
 	if err != nil {
 		return nil, err
 	}
@@ -152,14 +143,14 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	productJson, err := json.Marshal(products)
+	productJSON, err := json.Marshal(products)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	_, err = w.Write(productJson)
+	_, err = w.Write(productJSON)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

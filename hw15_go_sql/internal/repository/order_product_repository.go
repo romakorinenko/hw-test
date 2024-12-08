@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/huandu/go-sqlbuilder"
@@ -10,16 +11,15 @@ import (
 
 type OrderProduct struct {
 	ID        int `db:"id" fieldtag:"pk" json:"id"`
-	OrderId   int `db:"order_id" json:"orderId"`
-	ProductId int `db:"product_id" json:"productId"`
+	OrderID   int `db:"order_id" json:"orderId"`
+	ProductID int `db:"product_id" json:"productId"`
 }
 
 type IOrderProductRepository interface {
-	Create(ctx context.Context, tx pgx.Tx, orderId, productId int) error
+	Create(ctx context.Context, tx pgx.Tx, orderID, productID int) error
 }
 
-type OrderProductRepository struct {
-}
+type OrderProductRepository struct{}
 
 const OrderProductsTable = "order_products"
 
@@ -29,17 +29,20 @@ func NewOrderProductRepository() *OrderProductRepository {
 	return &OrderProductRepository{}
 }
 
-func (o *OrderProductRepository) Create(ctx context.Context, tx pgx.Tx, orderId, productId int) error {
-	orderProductId, err := o.generateNextOrderProductID(ctx, tx)
+func (o *OrderProductRepository) Create(ctx context.Context, tx pgx.Tx, orderID, productID int) error {
+	orderProductID, err := o.generateNextOrderProductID(ctx, tx)
 	if err != nil {
 		return err
 	}
-	orderProduct := &OrderProduct{ID: orderProductId, OrderId: orderId, ProductId: productId}
+	orderProduct := &OrderProduct{ID: orderProductID, OrderID: orderID, ProductID: productID}
 
 	sql, args := OrderProductStruct.InsertInto(OrderProductsTable, orderProduct).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 	row := tx.QueryRow(ctx, sql, args...)
-	_ = row.Scan()
+	err = row.Scan()
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return err
+	}
 
 	return nil
 }

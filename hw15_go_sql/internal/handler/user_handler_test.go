@@ -15,18 +15,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const userURLHost = "http://localhost:8087"
+
 func TestUserHandler_CRUD(t *testing.T) {
-	testDb := test.CreateTestDb(t, "/migrations")
-	defer testDb.Close()
+	testDB := test.CreateDBForTest(t, "/migrations")
+	defer testDB.Close()
 
 	ctx := context.Background()
 
-	host := "http://localhost:8087"
 	userPath := "/users"
 	usersPath := "/users/all"
 
 	mux := http.NewServeMux()
-	userRepository := repository.NewUserRepository(testDb.DbPool)
+	userRepository := repository.NewUserRepository(testDB.DBPool)
 	userHandler := NewUserHandler(userRepository)
 	mux.HandleFunc(userPath, userHandler.Handle)
 	mux.HandleFunc(usersPath, userHandler.GetAll)
@@ -50,7 +51,7 @@ func TestUserHandler_CRUD(t *testing.T) {
 			Email:    "User@mail.ru",
 			Password: "UserPass",
 		}).
-		Post(fmt.Sprintf("%s%s", host, userPath))
+		Post(fmt.Sprintf("%s%s", userURLHost, userPath))
 	require.NoError(t, err)
 
 	createdUser := repository.User{
@@ -67,7 +68,7 @@ func TestUserHandler_CRUD(t *testing.T) {
 
 	getResp, err := client.R().
 		SetQueryParams(map[string]string{"id": strconv.Itoa(actualPostUser.ID)}).
-		Get(fmt.Sprintf("%s%s", host, userPath))
+		Get(fmt.Sprintf("%s%s", userURLHost, userPath))
 	require.NoError(t, err)
 
 	var actualGetUser repository.User
@@ -82,7 +83,7 @@ func TestUserHandler_CRUD(t *testing.T) {
 			Email:    actualGetUser.Email,
 			Password: "UserPass11",
 		}).
-		Put(fmt.Sprintf("%s%s", host, userPath))
+		Put(fmt.Sprintf("%s%s", userURLHost, userPath))
 	require.NoError(t, err)
 
 	var actualPutUser repository.User
@@ -96,7 +97,7 @@ func TestUserHandler_CRUD(t *testing.T) {
 
 	_, err = client.R().
 		SetQueryParams(map[string]string{"id": strconv.Itoa(actualPostUser.ID)}).
-		Delete(fmt.Sprintf("%s%s", host, userPath))
+		Delete(fmt.Sprintf("%s%s", userURLHost, userPath))
 	require.NoError(t, err)
 
 	emptyUsers, err := userRepository.GetAll(ctx)

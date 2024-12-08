@@ -16,13 +16,14 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const orderURLHost = "http://localhost:8087"
+
 func TestOrderHandler(t *testing.T) {
-	testDb := test.CreateTestDb(t, "/migrations")
-	defer testDb.Close()
+	testDB := test.CreateDBForTest(t, "/migrations")
+	defer testDB.Close()
 
 	ctx := context.Background()
 
-	host := "http://localhost:8087"
 	orderPath := "/orders"
 	ordersByIDPath := "/orders/byuserid"
 	ordersByEmailPath := "/orders/byuseremail"
@@ -31,18 +32,18 @@ func TestOrderHandler(t *testing.T) {
 	productPath := "/products"
 
 	mux := http.NewServeMux()
-	orderRepository := repository.NewOrderRepository(testDb.DbPool)
+	orderRepository := repository.NewOrderRepository(testDB.DBPool)
 	orderHandler := NewOrderHandler(orderRepository)
 	mux.HandleFunc(orderPath, orderHandler.Handle)
 	mux.HandleFunc(ordersByIDPath, orderHandler.GetByUserID)
 	mux.HandleFunc(ordersByEmailPath, orderHandler.GetByUserEmail)
 	mux.HandleFunc(ordersStatsByUserPath, orderHandler.GetStatistics)
 
-	userRepository := repository.NewUserRepository(testDb.DbPool)
+	userRepository := repository.NewUserRepository(testDB.DBPool)
 	userHandler := NewUserHandler(userRepository)
 	mux.HandleFunc(userPath, userHandler.Handle)
 
-	productRepository := repository.NewProductRepository(testDb.DbPool)
+	productRepository := repository.NewProductRepository(testDB.DBPool)
 	productHandler := NewProductHandler(productRepository)
 	mux.HandleFunc(productPath, productHandler.Handle)
 
@@ -65,7 +66,7 @@ func TestOrderHandler(t *testing.T) {
 			Email:    "User@mail.ru",
 			Password: "UserPass",
 		}).
-		Post(fmt.Sprintf("%s%s", host, userPath))
+		Post(fmt.Sprintf("%s%s", orderURLHost, userPath))
 	require.NoError(t, err)
 
 	var user repository.User
@@ -77,7 +78,7 @@ func TestOrderHandler(t *testing.T) {
 			Name:  "apple",
 			Price: 25.50,
 		}).
-		Post(fmt.Sprintf("%s%s", host, productPath))
+		Post(fmt.Sprintf("%s%s", orderURLHost, productPath))
 	require.NoError(t, err)
 
 	var firstProduct repository.Product
@@ -89,32 +90,20 @@ func TestOrderHandler(t *testing.T) {
 			Name:  "cherry",
 			Price: 20.00,
 		}).
-		Post(fmt.Sprintf("%s%s", host, productPath))
+		Post(fmt.Sprintf("%s%s", orderURLHost, productPath))
 	require.NoError(t, err)
 
 	var secondProduct repository.Product
 	err = json.Unmarshal(postSecondProductResponse.Body(), &secondProduct)
 	require.NoError(t, err)
 
-	postThirdProductResponse, err := client.R().
-		SetBody(&repository.Product{
-			Name:  "cherry",
-			Price: 20.00,
-		}).
-		Post(fmt.Sprintf("%s%s", host, productPath))
-	require.NoError(t, err)
-
-	var thirdProduct repository.Product
-	err = json.Unmarshal(postThirdProductResponse.Body(), &thirdProduct)
-	require.NoError(t, err)
-
 	postOrderResp, err := client.R().
 		SetBody(&repository.Order{
-			UserId:      user.ID,
+			UserID:      user.ID,
 			TotalAmount: float32(decimal.NewFromFloat32(firstProduct.Price).Sub(decimal.NewFromFloat32(secondProduct.Price)).InexactFloat64()),
-			ProductIds:  []int{firstProduct.ID, secondProduct.ID},
+			ProductIDs:  []int{firstProduct.ID, secondProduct.ID},
 		}).
-		Post(fmt.Sprintf("%s%s", host, orderPath))
+		Post(fmt.Sprintf("%s%s", orderURLHost, orderPath))
 	require.NoError(t, err)
 
 	var order repository.Order
@@ -122,7 +111,7 @@ func TestOrderHandler(t *testing.T) {
 	require.NoError(t, err)
 	require.Equal(t, 1, order.ID)
 
-	rows, err := testDb.DbPool.Query(ctx, `SELECT COUNT(*) FROM order_products`)
+	rows, err := testDB.DBPool.Query(ctx, `SELECT COUNT(*) FROM order_products`)
 	require.NoError(t, err)
 
 	var count int
@@ -135,7 +124,7 @@ func TestOrderHandler(t *testing.T) {
 
 	getByUserID, err := client.R().
 		SetQueryParams(map[string]string{"userId": strconv.Itoa(user.ID)}).
-		Get(fmt.Sprintf("%s%s", host, ordersByIDPath))
+		Get(fmt.Sprintf("%s%s", orderURLHost, ordersByIDPath))
 	require.NoError(t, err)
 
 	var ordersByUserID []repository.Order
@@ -146,7 +135,7 @@ func TestOrderHandler(t *testing.T) {
 
 	getByUserEmail, err := client.R().
 		SetQueryParams(map[string]string{"email": user.Email}).
-		Get(fmt.Sprintf("%s%s", host, ordersByEmailPath))
+		Get(fmt.Sprintf("%s%s", orderURLHost, ordersByEmailPath))
 	require.NoError(t, err)
 
 	var ordersByUserEmail []repository.Order
@@ -157,7 +146,7 @@ func TestOrderHandler(t *testing.T) {
 
 	statistics, err := client.R().
 		SetQueryParams(map[string]string{"id": strconv.Itoa(user.ID)}).
-		Get(fmt.Sprintf("%s%s", host, ordersStatsByUserPath))
+		Get(fmt.Sprintf("%s%s", orderURLHost, ordersStatsByUserPath))
 	require.NoError(t, err)
 
 	var statisticsByUser repository.UserStatistics
@@ -169,5 +158,4 @@ func TestOrderHandler(t *testing.T) {
 		TotalAmount:  45.50,
 		AveragePrice: 22.75,
 	}, statisticsByUser)
-
 }

@@ -29,28 +29,28 @@ func (h *OrderHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	log.Println("received request: ", r.Method, r.URL.Path)
 
 	var response *Response
-	var err error
+	var handlingErr error
 
 	switch r.Method {
-	case http.MethodPost:
-		response, err = h.create(r)
-	case http.MethodGet:
-		http.Error(w, "", http.StatusMethodNotAllowed)
-		return
 	case http.MethodPut:
 		http.Error(w, "", http.StatusMethodNotAllowed)
 		return
+	case http.MethodPost:
+		response, handlingErr = h.create(r)
 	case http.MethodDelete:
-		response, err = h.deleteByID(r)
+		response, handlingErr = h.deleteByID(r)
+	case http.MethodGet:
+		http.Error(w, "", http.StatusMethodNotAllowed)
+		return
 	}
 
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if handlingErr != nil {
+		http.Error(w, handlingErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(response.StatusCode)
-	if _, err = w.Write(response.Body); err != nil {
+	if _, err := w.Write(response.Body); handlingErr != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -80,13 +80,13 @@ func (h *OrderHandler) create(r *http.Request) (*Response, error) {
 }
 
 func (h *OrderHandler) deleteByID(r *http.Request) (*Response, error) {
-	orderIdString := r.URL.Query().Get("id")
-	productId, err := strconv.Atoi(orderIdString)
+	orderIDString := r.URL.Query().Get("id")
+	productID, err := strconv.Atoi(orderIDString)
 	if err != nil {
 		return nil, err
 	}
 
-	err = h.orderRepository.DeleteById(context.Background(), productId)
+	err = h.orderRepository.DeleteByID(context.Background(), productID)
 	if err != nil {
 		return nil, err
 	}
@@ -102,21 +102,21 @@ func (h *OrderHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIdString := r.URL.Query().Get("userId")
-	userId, err := strconv.Atoi(userIdString)
+	userIDString := r.URL.Query().Get("userId")
+	userID, err := strconv.Atoi(userIDString)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	orders, err := h.orderRepository.GetByUserID(context.Background(), userId)
+	orders, err := h.orderRepository.GetByUserID(context.Background(), userID)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	ordersJson, err := json.Marshal(orders)
-	_, err = w.Write(ordersJson)
+	ordersJSON, err := json.Marshal(orders)
+	_, err = w.Write(ordersJSON)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -138,14 +138,14 @@ func (h *OrderHandler) GetByUserEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ordersJson, err := json.Marshal(orders)
+	ordersJSON, err := json.Marshal(orders)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	_, err = w.Write(ordersJson)
+	_, err = w.Write(ordersJSON)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
@@ -158,23 +158,23 @@ func (h *OrderHandler) GetStatistics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userIdString := r.URL.Query().Get("id")
-	userId, err := strconv.Atoi(userIdString)
+	userIDString := r.URL.Query().Get("id")
+	userID, err := strconv.Atoi(userIDString)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	userStat, err := h.orderRepository.GetStatisticsByID(context.Background(), userId)
+	userStat, err := h.orderRepository.GetStatisticsByID(context.Background(), userID)
 
-	userStatJson, err := json.Marshal(userStat)
+	userStatJSON, err := json.Marshal(userStat)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	_, err = w.Write(userStatJson)
+	_, err = w.Write(userStatJSON)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return

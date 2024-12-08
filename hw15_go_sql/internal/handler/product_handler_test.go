@@ -15,18 +15,19 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
+const productURLHost = "http://localhost:8087"
+
 func TestProductHandler_CRUD(t *testing.T) {
-	testDb := test.CreateTestDb(t, "/migrations")
-	defer testDb.Close()
+	testDB := test.CreateDBForTest(t, "/migrations")
+	defer testDB.Close()
 
 	ctx := context.Background()
 
-	host := "http://localhost:8087"
 	productPath := "/products"
 	productsPath := "/products/all"
 
 	mux := http.NewServeMux()
-	productRepository := repository.NewProductRepository(testDb.DbPool)
+	productRepository := repository.NewProductRepository(testDB.DBPool)
 	productHandler := NewProductHandler(productRepository)
 	mux.HandleFunc(productPath, productHandler.Handle)
 	mux.HandleFunc(productsPath, productHandler.GetAll)
@@ -49,7 +50,7 @@ func TestProductHandler_CRUD(t *testing.T) {
 			Name:  "apple",
 			Price: 25.50,
 		}).
-		Post(fmt.Sprintf("%s%s", host, productPath))
+		Post(fmt.Sprintf("%s%s", productURLHost, productPath))
 	require.NoError(t, err)
 
 	createdProduct := repository.Product{
@@ -65,7 +66,7 @@ func TestProductHandler_CRUD(t *testing.T) {
 
 	getResp, err := client.R().
 		SetQueryParams(map[string]string{"id": strconv.Itoa(actualPostProduct.ID)}).
-		Get(fmt.Sprintf("%s%s", host, productPath))
+		Get(fmt.Sprintf("%s%s", productURLHost, productPath))
 	require.NoError(t, err)
 
 	var actualGetProduct repository.Product
@@ -79,7 +80,7 @@ func TestProductHandler_CRUD(t *testing.T) {
 			Name:  actualGetProduct.Name,
 			Price: 20.50,
 		}).
-		Put(fmt.Sprintf("%s%s", host, productPath))
+		Put(fmt.Sprintf("%s%s", productURLHost, productPath))
 	require.NoError(t, err)
 
 	var actualPutProduct repository.Product
@@ -93,7 +94,7 @@ func TestProductHandler_CRUD(t *testing.T) {
 
 	_, err = client.R().
 		SetQueryParams(map[string]string{"id": strconv.Itoa(actualPostProduct.ID)}).
-		Delete(fmt.Sprintf("%s%s", host, productPath))
+		Delete(fmt.Sprintf("%s%s", productURLHost, productPath))
 	require.NoError(t, err)
 
 	emptyProducts, err := productRepository.GetAll(ctx)

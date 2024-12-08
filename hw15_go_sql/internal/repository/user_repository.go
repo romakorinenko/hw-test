@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/huandu/go-sqlbuilder"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -17,10 +19,10 @@ type User struct {
 
 type IUserRepository interface {
 	Create(ctx context.Context, user *User) (*User, error)
-	GetByID(ctx context.Context, userId int) (*User, error)
+	GetByID(ctx context.Context, userID int) (*User, error)
 	GetAll(ctx context.Context) ([]User, error)
 	Update(ctx context.Context, user *User) (*User, error)
-	DeleteByID(ctx context.Context, userId int) error
+	DeleteByID(ctx context.Context, userID int) error
 }
 
 type UserRepository struct {
@@ -36,22 +38,26 @@ const usersTable = "users"
 var UserStruct = sqlbuilder.NewStruct(new(User))
 
 func (u *UserRepository) Create(ctx context.Context, user *User) (*User, error) {
-	userId, err := u.generateNextUserID(ctx)
+	userID, err := u.generateNextUserID(ctx)
 	if err != nil {
 		return nil, err
 	}
-	user.ID = userId
+	user.ID = userID
 
 	sql, args := UserStruct.InsertInto(usersTable, user).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
-	_ = u.dbPool.QueryRow(ctx, sql, args...)
+	row := u.dbPool.QueryRow(ctx, sql, args...)
+	err = row.Scan()
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return nil, err
+	}
 
 	return user, nil
 }
 
-func (u *UserRepository) GetByID(ctx context.Context, userId int) (*User, error) {
+func (u *UserRepository) GetByID(ctx context.Context, userID int) (*User, error) {
 	selectBuilder := UserStruct.SelectFrom(usersTable)
-	sql, args := selectBuilder.Where(selectBuilder.Equal("id", userId)).
+	sql, args := selectBuilder.Where(selectBuilder.Equal("id", userID)).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 	row := u.dbPool.QueryRow(ctx, sql, args...)
 
@@ -107,9 +113,9 @@ func (u *UserRepository) Update(ctx context.Context, user *User) (*User, error) 
 	return user, nil
 }
 
-func (u *UserRepository) DeleteByID(ctx context.Context, userId int) error {
+func (u *UserRepository) DeleteByID(ctx context.Context, userID int) error {
 	deleteBuilder := UserStruct.DeleteFrom(usersTable)
-	sql, args := deleteBuilder.Where(deleteBuilder.Equal("id", userId)).
+	sql, args := deleteBuilder.Where(deleteBuilder.Equal("id", userID)).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 
 	_, err := u.dbPool.Exec(ctx, sql, args...)
@@ -122,7 +128,6 @@ func (u *UserRepository) DeleteByID(ctx context.Context, userId int) error {
 
 func (u *UserRepository) generateNextUserID(ctx context.Context) (int, error) {
 	rows, err := u.dbPool.Query(ctx, fmt.Sprintf("SELECT nextval('%s')", "users_sequence"))
-
 	if err != nil {
 		return 0, err
 	}

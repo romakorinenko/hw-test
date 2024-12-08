@@ -3,6 +3,7 @@ package test
 import (
 	"context"
 	"database/sql"
+	"fmt"
 	"path"
 	"runtime"
 	"testing"
@@ -19,9 +20,9 @@ import (
 	"github.com/testcontainers/testcontainers-go/wait"
 )
 
-type TestDb struct {
+type DBForTest struct {
 	PostgresContainer *PostgresContainer
-	DbPool            *pgxpool.Pool
+	DBPool            *pgxpool.Pool
 }
 
 type PostgresContainer struct {
@@ -29,13 +30,15 @@ type PostgresContainer struct {
 	ConnectionString string
 }
 
-func CreateTestDb(t *testing.T, migrationsDir string) *TestDb {
+func CreateDBForTest(t *testing.T, migrationsDir string) *DBForTest {
+	t.Helper()
+
 	_, filename, _, _ := runtime.Caller(0)
 	projectDir := path.Join(path.Dir(filename), "..")
 
 	postgresContainer := RunPostgresContainer(t)
 
-	dbpool, err := projDbpool.NewDbPool(context.Background(), &config.Db{
+	dbpool, err := projDbpool.NewDBPool(context.Background(), &config.DB{
 		ConnectionString: postgresContainer.ConnectionString,
 	})
 	require.NoError(t, err)
@@ -44,8 +47,8 @@ func CreateTestDb(t *testing.T, migrationsDir string) *TestDb {
 	err = UpMigrations(db, projectDir+migrationsDir)
 	require.NoError(t, err)
 
-	return &TestDb{
-		DbPool:            dbpool,
+	return &DBForTest{
+		DBPool:            dbpool,
 		PostgresContainer: postgresContainer,
 	}
 }
@@ -88,6 +91,9 @@ func UpMigrations(db *sql.DB, dir string) error {
 	return nil
 }
 
-func (t *TestDb) Close() {
-	_ = t.PostgresContainer.Container.Terminate(context.Background())
+func (t *DBForTest) Close() {
+	err := t.PostgresContainer.Container.Terminate(context.Background())
+	if err != nil {
+		fmt.Println(err)
+	}
 }

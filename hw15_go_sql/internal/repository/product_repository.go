@@ -2,9 +2,11 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 
 	"github.com/huandu/go-sqlbuilder"
+	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -16,10 +18,10 @@ type Product struct {
 
 type IProductRepository interface {
 	Create(ctx context.Context, product *Product) (*Product, error)
-	GetByID(ctx context.Context, productId int) (*Product, error)
+	GetByID(ctx context.Context, productID int) (*Product, error)
 	GetAll(ctx context.Context) ([]Product, error)
 	Update(ctx context.Context, product *Product) (*Product, error)
-	DeleteByID(ctx context.Context, productId int) error
+	DeleteByID(ctx context.Context, productID int) error
 }
 
 type ProductRepository struct {
@@ -35,23 +37,27 @@ const productTable = "products"
 var ProductStruct = sqlbuilder.NewStruct(new(Product))
 
 func (p *ProductRepository) Create(ctx context.Context, product *Product) (*Product, error) {
-	productId, err := p.generateNextProductID(ctx)
+	productID, err := p.generateNextProductID(ctx)
 	if err != nil {
 		return nil, err
 	}
-	product.ID = productId
+	product.ID = productID
 
 	sql, args := ProductStruct.InsertInto(productTable, product).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 
-	_ = p.dbPool.QueryRow(ctx, sql, args...)
+	row := p.dbPool.QueryRow(ctx, sql, args...)
+	err = row.Scan()
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return nil, err
+	}
 
 	return product, nil
 }
 
-func (p *ProductRepository) GetByID(ctx context.Context, productId int) (*Product, error) {
+func (p *ProductRepository) GetByID(ctx context.Context, productID int) (*Product, error) {
 	selectBuilder := ProductStruct.SelectFrom(productTable)
-	sql, args := selectBuilder.Where(selectBuilder.Equal("id", productId)).
+	sql, args := selectBuilder.Where(selectBuilder.Equal("id", productID)).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 
 	row := p.dbPool.QueryRow(ctx, sql, args...)
@@ -107,9 +113,9 @@ func (p *ProductRepository) Update(ctx context.Context, product *Product) (*Prod
 	return product, nil
 }
 
-func (p *ProductRepository) DeleteByID(ctx context.Context, productId int) error {
+func (p *ProductRepository) DeleteByID(ctx context.Context, productID int) error {
 	deleteBuilder := ProductStruct.DeleteFrom(productTable)
-	sql, args := deleteBuilder.Where(deleteBuilder.Equal("id", productId)).
+	sql, args := deleteBuilder.Where(deleteBuilder.Equal("id", productID)).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 
 	_, err := p.dbPool.Exec(ctx, sql, args...)
@@ -122,7 +128,6 @@ func (p *ProductRepository) DeleteByID(ctx context.Context, productId int) error
 
 func (p *ProductRepository) generateNextProductID(ctx context.Context) (int, error) {
 	rows, err := p.dbPool.Query(ctx, fmt.Sprintf("SELECT nextval('%s')", "products_sequence"))
-
 	if err != nil {
 		return 0, err
 	}

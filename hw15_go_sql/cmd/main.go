@@ -20,7 +20,7 @@ func main() {
 	cfg := configs.MustLoadConfig()
 	port := cfg.Server.Port
 
-	dbPool, err := dbpool.NewDbPool(context.Background(), cfg.Db)
+	dbPool, err := dbpool.NewDBPool(context.Background(), cfg.DB)
 	if err != nil {
 		log.Fatalln("cannot create dbPool", err)
 	}
@@ -48,10 +48,12 @@ func main() {
 
 	log.Println("server started on port: ", port)
 	go func() {
-		_ = server.ListenAndServe()
+		if err = server.ListenAndServe(); err != nil {
+			log.Fatalln("failed to start server", err)
+		}
 	}()
 
-	_ = gracefulShutdown(server)
+	log.Println(gracefulShutdown(server))
 }
 
 func gracefulShutdown(server *http.Server) error {

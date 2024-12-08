@@ -2,6 +2,7 @@ package repository
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"time"
 
@@ -12,10 +13,10 @@ import (
 
 type Order struct {
 	ID          int       `db:"id" fieldtag:"pk" json:"id"`
-	UserId      int       `db:"user_id" json:"userId"`
+	UserID      int       `db:"user_id" json:"userId"`
 	OrderDate   time.Time `db:"order_date" json:"orderDate"`
 	TotalAmount float32   `db:"total_amount" json:"totalAmount"`
-	ProductIds  []int     `db:"-" json:"productIds"`
+	ProductIDs  []int     `db:"-" json:"productIds"`
 }
 
 type UserStatistics struct {
@@ -27,10 +28,10 @@ type UserStatistics struct {
 
 type IOrderRepository interface {
 	Create(ctx context.Context, order *Order) (*Order, error)
-	DeleteById(ctx context.Context, orderId int) error
-	GetByUserID(ctx context.Context, userId int) ([]Order, error)
+	DeleteByID(ctx context.Context, orderID int) error
+	GetByUserID(ctx context.Context, userID int) ([]Order, error)
 	GetByUserEmail(ctx context.Context, userEmail string) ([]Order, error)
-	GetStatisticsByID(ctx context.Context, userId int) (*UserStatistics, error)
+	GetStatisticsByID(ctx context.Context, userID int) (*UserStatistics, error)
 }
 
 type OrderRepository struct {
@@ -40,8 +41,10 @@ type OrderRepository struct {
 
 const ordersTable = "orders"
 
-var OrderStruct = sqlbuilder.NewStruct(new(Order))
-var UserStatisticsStruct = sqlbuilder.NewStruct(new(UserStatistics))
+var (
+	OrderStruct          = sqlbuilder.NewStruct(new(Order))
+	UserStatisticsStruct = sqlbuilder.NewStruct(new(UserStatistics))
+)
 
 func NewOrderRepository(dbPool *pgxpool.Pool) *OrderRepository {
 	return &OrderRepository{dbPool: dbPool, OrderProductRepository: NewOrderProductRepository()}
@@ -58,23 +61,29 @@ func (o *OrderRepository) Create(ctx context.Context, order *Order) (*Order, err
 		return nil, err
 	}
 	defer func() {
-		_ = tx.Rollback(ctx)
+		err = tx.Rollback(ctx)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}()
 
-	orderId, err := o.generateNextOrderID(ctx, tx)
+	orderID, err := o.generateNextOrderID(ctx, tx)
 	if err != nil {
 		return nil, err
 	}
-	order.ID = orderId
+	order.ID = orderID
 	order.OrderDate = time.Now()
 
 	sql, args := OrderStruct.InsertInto(ordersTable, order).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 	row := tx.QueryRow(ctx, sql, args...)
-	_ = row.Scan()
+	err = row.Scan()
+	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+		return nil, err
+	}
 
-	for _, productId := range order.ProductIds {
-		err := o.OrderProductRepository.Create(ctx, tx, orderId, productId)
+	for _, productID := range order.ProductIDs {
+		err := o.OrderProductRepository.Create(ctx, tx, orderID, productID)
 		if err != nil {
 			return nil, err
 		}
@@ -88,17 +97,20 @@ func (o *OrderRepository) Create(ctx context.Context, order *Order) (*Order, err
 	return order, nil
 }
 
-func (o *OrderRepository) DeleteById(ctx context.Context, orderId int) error {
+func (o *OrderRepository) DeleteByID(ctx context.Context, orderID int) error {
 	tx, err := o.dbPool.BeginTx(ctx, pgx.TxOptions{AccessMode: pgx.ReadWrite})
 	if err != nil {
 		return err
 	}
 	defer func() {
-		_ = tx.Rollback(ctx)
+		err = tx.Rollback(ctx)
+		if err != nil {
+			fmt.Println(err)
+		}
 	}()
 
 	deleteBuilder := OrderStruct.DeleteFrom(ordersTable)
-	sql, args := deleteBuilder.Where(deleteBuilder.Equal("id", orderId)).
+	sql, args := deleteBuilder.Where(deleteBuilder.Equal("id", orderID)).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 
 	_, err = tx.Exec(ctx, sql, args...)
@@ -114,9 +126,9 @@ func (o *OrderRepository) DeleteById(ctx context.Context, orderId int) error {
 	return nil
 }
 
-func (o *OrderRepository) GetByUserID(ctx context.Context, userId int) ([]Order, error) {
+func (o *OrderRepository) GetByUserID(ctx context.Context, userID int) ([]Order, error) {
 	selectBuilder := OrderStruct.SelectFrom(ordersTable)
-	sql, args := selectBuilder.Where(selectBuilder.Equal("user_id", userId)).
+	sql, args := selectBuilder.Where(selectBuilder.Equal("user_id", userID)).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 	rows, err := o.dbPool.Query(ctx, sql, args...)
 	if err != nil {
@@ -161,14 +173,14 @@ func (o *OrderRepository) GetByUserEmail(ctx context.Context, userEmail string) 
 	return res, nil
 }
 
-func (o *OrderRepository) GetStatisticsByID(ctx context.Context, userId int) (*UserStatistics, error) {
+func (o *OrderRepository) GetStatisticsByID(ctx context.Context, userID int) (*UserStatistics, error) {
 	selectBuilder := sqlbuilder.NewSelectBuilder()
 	sql, args := selectBuilder.Select("users.name", "COUNT(DISTINCT orders.id) AS total_orders", "SUM(products.price) AS total_amount", "AVG(products.price) AS avg_price").
 		From(ordersTable).
 		Join("order_products", "orders.id = order_products.order_id").
 		Join("products", "order_products.product_id = products.id").
 		Join("users", "orders.user_id = users.id").
-		Where(selectBuilder.Equal("users.id", userId)).
+		Where(selectBuilder.Equal("users.id", userID)).
 		GroupBy("users.id", "users.name").
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 	row := o.dbPool.QueryRow(ctx, sql, args...)
@@ -183,7 +195,6 @@ func (o *OrderRepository) GetStatisticsByID(ctx context.Context, userId int) (*U
 
 func (o *OrderRepository) generateNextOrderID(ctx context.Context, tx pgx.Tx) (int, error) {
 	rows, err := tx.Query(ctx, fmt.Sprintf("SELECT nextval('%s')", "orders_sequence"))
-
 	if err != nil {
 		return 0, err
 	}
