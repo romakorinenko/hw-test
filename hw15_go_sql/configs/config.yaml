@@ -1,0 +1,6 @@
+server:
+  port: 8086
+  readHeaderTimeout: 5s
+
+db:
+  connectionString: "postgres://postgres:postgres@app_postgres:5432/test_db?sslmode=disable"
