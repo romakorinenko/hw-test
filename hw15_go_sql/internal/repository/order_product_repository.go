@@ -21,9 +21,11 @@ type IOrderProductRepository interface {
 type OrderProductRepository struct {
 }
 
+const OrderProductsTable = "order_products"
+
 var OrderProductStruct = sqlbuilder.NewStruct(new(OrderProduct))
 
-func NewOrderProductRepository() IOrderProductRepository {
+func NewOrderProductRepository() *OrderProductRepository {
 	return &OrderProductRepository{}
 }
 
@@ -34,7 +36,7 @@ func (o *OrderProductRepository) Create(ctx context.Context, tx pgx.Tx, orderId,
 	}
 	orderProduct := &OrderProduct{ID: orderProductId, OrderId: orderId, ProductId: productId}
 
-	sql, args := OrderProductStruct.InsertInto("order_products", orderProduct).
+	sql, args := OrderProductStruct.InsertInto(OrderProductsTable, orderProduct).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 	row := tx.QueryRow(ctx, sql, args...)
 	_ = row.Scan()

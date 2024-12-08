@@ -19,7 +19,7 @@ type UserHandler struct {
 	userRepository repository.IUserRepository
 }
 
-func NewUserHandler(userRepository repository.IUserRepository) IUserHandler {
+func NewUserHandler(userRepository repository.IUserRepository) *UserHandler {
 	return &UserHandler{userRepository: userRepository}
 }
 

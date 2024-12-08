@@ -26,9 +26,11 @@ type ProductRepository struct {
 	dbPool *pgxpool.Pool
 }
 
-func NewProductRepository(dbPool *pgxpool.Pool) IProductRepository {
+func NewProductRepository(dbPool *pgxpool.Pool) *ProductRepository {
 	return &ProductRepository{dbPool: dbPool}
 }
+
+const productTable = "products"
 
 var ProductStruct = sqlbuilder.NewStruct(new(Product))
 
@@ -39,7 +41,7 @@ func (p *ProductRepository) Create(ctx context.Context, product *Product) (*Prod
 	}
 	product.ID = productId
 
-	sql, args := ProductStruct.InsertInto("products", product).
+	sql, args := ProductStruct.InsertInto(productTable, product).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 
 	_ = p.dbPool.QueryRow(ctx, sql, args...)
@@ -48,7 +50,7 @@ func (p *ProductRepository) Create(ctx context.Context, product *Product) (*Prod
 }
 
 func (p *ProductRepository) GetByID(ctx context.Context, productId int) (*Product, error) {
-	selectBuilder := ProductStruct.SelectFrom("products")
+	selectBuilder := ProductStruct.SelectFrom(productTable)
 	sql, args := selectBuilder.Where(selectBuilder.Equal("id", productId)).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 
@@ -64,7 +66,7 @@ func (p *ProductRepository) GetByID(ctx context.Context, productId int) (*Produc
 }
 
 func (p *ProductRepository) GetAll(ctx context.Context) ([]Product, error) {
-	sql, _ := ProductStruct.SelectFrom("products").
+	sql, _ := ProductStruct.SelectFrom(productTable).
 		OrderBy("id").
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 
@@ -89,7 +91,7 @@ func (p *ProductRepository) GetAll(ctx context.Context) ([]Product, error) {
 
 func (p *ProductRepository) Update(ctx context.Context, product *Product) (*Product, error) {
 	updateBuilder := sqlbuilder.NewUpdateBuilder()
-	sql, args := updateBuilder.Update("products").
+	sql, args := updateBuilder.Update(productTable).
 		Set(
 			updateBuilder.Assign("name", product.Name),
 			updateBuilder.Assign("price", product.Price),
@@ -106,7 +108,7 @@ func (p *ProductRepository) Update(ctx context.Context, product *Product) (*Prod
 }
 
 func (p *ProductRepository) DeleteByID(ctx context.Context, productId int) error {
-	deleteBuilder := ProductStruct.DeleteFrom("products")
+	deleteBuilder := ProductStruct.DeleteFrom(productTable)
 	sql, args := deleteBuilder.Where(deleteBuilder.Equal("id", productId)).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 

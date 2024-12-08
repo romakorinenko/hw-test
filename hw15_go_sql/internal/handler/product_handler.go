@@ -19,7 +19,7 @@ type ProductHandler struct {
 	productRepository repository.IProductRepository
 }
 
-func NewProductHandler(productRepository repository.IProductRepository) IProductHandler {
+func NewProductHandler(productRepository repository.IProductRepository) *ProductHandler {
 	return &ProductHandler{productRepository: productRepository}
 }
 

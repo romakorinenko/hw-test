@@ -21,7 +21,7 @@ type OrderHandler struct {
 	orderRepository repository.IOrderRepository
 }
 
-func NewOrderHandler(orderRepository repository.IOrderRepository) IOrderHandler {
+func NewOrderHandler(orderRepository repository.IOrderRepository) *OrderHandler {
 	return &OrderHandler{orderRepository: orderRepository}
 }
 

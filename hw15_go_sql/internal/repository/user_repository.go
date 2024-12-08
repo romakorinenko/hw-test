@@ -27,9 +27,11 @@ type UserRepository struct {
 	dbPool *pgxpool.Pool
 }
 
-func NewUserRepository(dbPool *pgxpool.Pool) IUserRepository {
+func NewUserRepository(dbPool *pgxpool.Pool) *UserRepository {
 	return &UserRepository{dbPool: dbPool}
 }
+
+const usersTable = "users"
 
 var UserStruct = sqlbuilder.NewStruct(new(User))
 
@@ -40,7 +42,7 @@ func (u *UserRepository) Create(ctx context.Context, user *User) (*User, error) 
 	}
 	user.ID = userId
 
-	sql, args := UserStruct.InsertInto("users", user).
+	sql, args := UserStruct.InsertInto(usersTable, user).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 	_ = u.dbPool.QueryRow(ctx, sql, args...)
 
@@ -48,7 +50,7 @@ func (u *UserRepository) Create(ctx context.Context, user *User) (*User, error) 
 }
 
 func (u *UserRepository) GetByID(ctx context.Context, userId int) (*User, error) {
-	selectBuilder := UserStruct.SelectFrom("users")
+	selectBuilder := UserStruct.SelectFrom(usersTable)
 	sql, args := selectBuilder.Where(selectBuilder.Equal("id", userId)).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 	row := u.dbPool.QueryRow(ctx, sql, args...)
@@ -63,7 +65,7 @@ func (u *UserRepository) GetByID(ctx context.Context, userId int) (*User, error)
 }
 
 func (u *UserRepository) GetAll(ctx context.Context) ([]User, error) {
-	sql, _ := UserStruct.SelectFrom("users").
+	sql, _ := UserStruct.SelectFrom(usersTable).
 		OrderBy("id").
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 
@@ -88,7 +90,7 @@ func (u *UserRepository) GetAll(ctx context.Context) ([]User, error) {
 
 func (u *UserRepository) Update(ctx context.Context, user *User) (*User, error) {
 	updateBuilder := sqlbuilder.NewUpdateBuilder()
-	sql, args := updateBuilder.Update("users").
+	sql, args := updateBuilder.Update(usersTable).
 		Set(
 			updateBuilder.Assign("name", user.Name),
 			updateBuilder.Assign("email", user.Email),
@@ -106,7 +108,7 @@ func (u *UserRepository) Update(ctx context.Context, user *User) (*User, error) 
 }
 
 func (u *UserRepository) DeleteByID(ctx context.Context, userId int) error {
-	deleteBuilder := UserStruct.DeleteFrom("users")
+	deleteBuilder := UserStruct.DeleteFrom(usersTable)
 	sql, args := deleteBuilder.Where(deleteBuilder.Equal("id", userId)).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 

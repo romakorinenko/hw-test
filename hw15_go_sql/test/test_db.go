@@ -58,7 +58,7 @@ func RunPostgresContainer(t *testing.T) *PostgresContainer {
 	dbPassword := "test_db_password123321"
 
 	postgresContainer, err := postgres.RunContainer(ctx,
-		testcontainers.WithImage("harbor-edu.mos.ru/docker_proxy_cod/postgres:16.2-alpine"),
+		testcontainers.WithImage("postgres:16.2-alpine"),
 		postgres.WithDatabase(dbName),
 		postgres.WithUsername(dbUser),
 		postgres.WithPassword(dbPassword),
