@@ -52,7 +52,6 @@ func (h *OrderHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	w.WriteHeader(response.StatusCode)
 	if _, err := w.Write(response.Body); handlingErr != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
 	}
 }
 

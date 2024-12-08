@@ -170,7 +170,12 @@ func (o *OrderRepository) GetByUserEmail(ctx context.Context, userEmail string) 
 
 func (o *OrderRepository) GetStatisticsByID(ctx context.Context, userID int) (*UserStatistics, error) {
 	selectBuilder := sqlbuilder.NewSelectBuilder()
-	sql, args := selectBuilder.Select("users.name", "COUNT(DISTINCT orders.id) AS total_orders", "SUM(products.price) AS total_amount", "AVG(products.price) AS avg_price").
+	sql, args := selectBuilder.Select(
+		"users.name",
+		"COUNT(DISTINCT orders.id) AS total_orders",
+		"SUM(products.price) AS total_amount",
+		"AVG(products.price) AS avg_price",
+	).
 		From(ordersTable).
 		Join("order_products", "orders.id = order_products.order_id").
 		Join("products", "order_products.product_id = products.id").

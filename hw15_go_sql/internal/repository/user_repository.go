@@ -119,11 +119,7 @@ func (u *UserRepository) DeleteByID(ctx context.Context, userID int) error {
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 
 	_, err := u.dbPool.Exec(ctx, sql, args...)
-	if err != nil {
-		return fmt.Errorf("cannot delete user from db: %w", err)
-	}
-
-	return nil
+	return err
 }
 
 func (u *UserRepository) generateNextUserID(ctx context.Context) (int, error) {

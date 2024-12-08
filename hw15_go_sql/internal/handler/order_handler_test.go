@@ -99,9 +99,11 @@ func TestOrderHandler(t *testing.T) {
 
 	postOrderResp, postOrderRespErr := client.R().
 		SetBody(&repository.Order{
-			UserID:      user.ID,
-			TotalAmount: float32(decimal.NewFromFloat32(firstProduct.Price).Sub(decimal.NewFromFloat32(secondProduct.Price)).InexactFloat64()),
-			ProductIDs:  []int{firstProduct.ID, secondProduct.ID},
+			UserID: user.ID,
+			TotalAmount: float32(decimal.NewFromFloat32(firstProduct.Price).
+				Sub(decimal.NewFromFloat32(secondProduct.Price)).
+				InexactFloat64()),
+			ProductIDs: []int{firstProduct.ID, secondProduct.ID},
 		}).
 		Post(fmt.Sprintf("%s%s", orderURLHost, orderPath))
 	require.NoError(t, postOrderRespErr)

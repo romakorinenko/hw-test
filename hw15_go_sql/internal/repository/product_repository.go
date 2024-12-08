@@ -119,11 +119,7 @@ func (p *ProductRepository) DeleteByID(ctx context.Context, productID int) error
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 
 	_, err := p.dbPool.Exec(ctx, sql, args...)
-	if err != nil {
-		return fmt.Errorf("cannot delete product from db: %w", err)
-	}
-
-	return nil
+	return err
 }
 
 func (p *ProductRepository) generateNextProductID(ctx context.Context) (int, error) {

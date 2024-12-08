@@ -28,8 +28,6 @@ services:
     restart: unless-stopped
     command: [ "postgres", "-c", "log_statement=all" ]
 
-#  возможно ситуация, когда контейнер goose нужно перестартовать вручную, postgres рестартует перед запуском,
-# но миграции уже начинают заливаться
   goose:
     image: stonys/goose-migrate
     volumes:
@@ -38,7 +36,13 @@ services:
       - app_network
     depends_on:
       - app_postgres
-    entrypoint: [ "goose", "-dir", "/migrations", "postgres", "postgres://postgres:postgres@app_postgres:5432/test_db?sslmode=disable", "up" ]
+    entrypoint:
+      - goose
+      - -dir
+      - /migrations
+      - postgres
+      - postgres://postgres:postgres@app_postgres:5432/test_db?sslmode=disable
+      - up
 
 networks:
   app_network:

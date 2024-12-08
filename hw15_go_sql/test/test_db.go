@@ -92,10 +92,7 @@ func UpMigrations(db *sql.DB, dir string) error {
 		return err
 	}
 
-	if err := goose.Up(db, dir); err != nil {
-		return err
-	}
-	return nil
+	return goose.Up(db, dir)
 }
 
 func (t *DBForTest) Close() {
