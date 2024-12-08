@@ -59,6 +59,8 @@ func CreateDBForTest(t *testing.T, migrationsDir string) *DBForTest {
 }
 
 func RunPostgresContainer(t *testing.T) *PostgresContainer {
+	t.Helper()
+
 	ctx := context.Background()
 
 	dbName := "test_db"

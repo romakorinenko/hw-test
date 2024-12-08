@@ -118,12 +118,7 @@ func (o *OrderRepository) DeleteByID(ctx context.Context, orderID int) error {
 		return fmt.Errorf("cannot delete order from db: %w", deleteOrderErr)
 	}
 
-	commitErr := tx.Commit(ctx)
-	if commitErr != nil {
-		return commitErr
-	}
-
-	return nil
+	return tx.Commit(ctx)
 }
 
 func (o *OrderRepository) GetByUserID(ctx context.Context, userID int) ([]Order, error) {
@@ -163,9 +158,9 @@ func (o *OrderRepository) GetByUserEmail(ctx context.Context, userEmail string) 
 	res := make([]Order, 0)
 	for rows.Next() {
 		var order Order
-		err := rows.Scan(OrderStruct.Addr(&order)...)
-		if err != nil {
-			return nil, err
+		rowScanErr := rows.Scan(OrderStruct.Addr(&order)...)
+		if rowScanErr != nil {
+			return nil, rowScanErr
 		}
 		res = append(res, order)
 	}

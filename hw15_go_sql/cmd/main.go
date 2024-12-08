@@ -48,8 +48,8 @@ func main() {
 
 	log.Println("server started on port: ", port)
 	go func() {
-		if err = server.ListenAndServe(); err != nil {
-			log.Fatalln("failed to start server", err)
+		if serverStartErr := server.ListenAndServe(); serverStartErr != nil {
+			log.Fatalln("failed to start server", serverStartErr)
 		}
 	}()
 
