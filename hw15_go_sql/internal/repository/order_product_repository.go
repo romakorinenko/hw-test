@@ -39,11 +39,10 @@ func (o *OrderProductRepository) Create(ctx context.Context, tx pgx.Tx, orderID,
 	sql, args := OrderProductStruct.InsertInto(OrderProductsTable, orderProduct).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 	row := tx.QueryRow(ctx, sql, args...)
-	err = row.Scan()
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
+	rowScanErr := row.Scan()
+	if rowScanErr != nil && !errors.Is(rowScanErr, pgx.ErrNoRows) {
 		return err
 	}
-
 	return nil
 }
 
@@ -56,9 +55,9 @@ func (o *OrderProductRepository) generateNextOrderProductID(ctx context.Context,
 
 	if rows.Next() {
 		var id int
-		err = rows.Scan(&id)
+		rowScanErr := rows.Scan(&id)
 		if err != nil {
-			return 0, err
+			return 0, rowScanErr
 		}
 		return id, nil
 	}

@@ -47,9 +47,9 @@ func (u *UserRepository) Create(ctx context.Context, user *User) (*User, error) 
 	sql, args := UserStruct.InsertInto(usersTable, user).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 	row := u.dbPool.QueryRow(ctx, sql, args...)
-	err = row.Scan()
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		return nil, err
+	rowScanErr := row.Scan()
+	if rowScanErr != nil && !errors.Is(rowScanErr, pgx.ErrNoRows) {
+		return nil, rowScanErr
 	}
 
 	return user, nil
@@ -84,9 +84,9 @@ func (u *UserRepository) GetAll(ctx context.Context) ([]User, error) {
 	res := make([]User, 0)
 	for rows.Next() {
 		var user User
-		err := rows.Scan(UserStruct.Addr(&user)...)
+		rowScanErr := rows.Scan(UserStruct.Addr(&user)...)
 		if err != nil {
-			return nil, err
+			return nil, rowScanErr
 		}
 		res = append(res, user)
 	}
@@ -135,9 +135,9 @@ func (u *UserRepository) generateNextUserID(ctx context.Context) (int, error) {
 
 	if rows.Next() {
 		var id int
-		err = rows.Scan(&id)
-		if err != nil {
-			return 0, err
+		rowScanErr := rows.Scan(&id)
+		if rowScanErr != nil {
+			return 0, rowScanErr
 		}
 		return id, nil
 	}

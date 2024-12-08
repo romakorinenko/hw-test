@@ -46,8 +46,8 @@ func (h *UserHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(response.StatusCode)
-	if _, err = w.Write(response.Body); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if _, writeBodyErr := w.Write(response.Body); err != nil {
+		http.Error(w, writeBodyErr.Error(), http.StatusInternalServerError)
 		return
 	}
 }
@@ -59,16 +59,15 @@ func (h *UserHandler) create(r *http.Request) (*Response, error) {
 		return nil, err
 	}
 
-	createdUser, err := h.userRepository.Create(context.Background(), &user)
-	if err != nil {
-		return nil, err
+	createdUser, createUserErr := h.userRepository.Create(context.Background(), &user)
+	if createUserErr != nil {
+		return nil, createUserErr
 	}
 
-	userJSON, err := json.Marshal(createdUser)
-	if err != nil {
-		return nil, err
+	userJSON, marshalJSONErr := json.Marshal(createdUser)
+	if marshalJSONErr != nil {
+		return nil, marshalJSONErr
 	}
-
 	return &Response{
 		StatusCode: http.StatusCreated,
 		Body:       userJSON,
@@ -82,16 +81,15 @@ func (h *UserHandler) update(r *http.Request) (*Response, error) {
 		return nil, err
 	}
 
-	updatedUser, err := h.userRepository.Update(context.Background(), &user)
-	if err != nil {
-		return nil, err
+	updatedUser, updateUserErr := h.userRepository.Update(context.Background(), &user)
+	if updateUserErr != nil {
+		return nil, updateUserErr
 	}
 
-	userJSON, err := json.Marshal(updatedUser)
-	if err != nil {
-		return nil, err
+	userJSON, marshalJSONErr := json.Marshal(updatedUser)
+	if marshalJSONErr != nil {
+		return nil, marshalJSONErr
 	}
-
 	return &Response{
 		StatusCode: http.StatusOK,
 		Body:       userJSON,
@@ -105,9 +103,9 @@ func (h *UserHandler) deleteByID(r *http.Request) (*Response, error) {
 		return nil, err
 	}
 
-	err = h.userRepository.DeleteByID(context.Background(), userID)
-	if err != nil {
-		return nil, err
+	deleteUserErr := h.userRepository.DeleteByID(context.Background(), userID)
+	if deleteUserErr != nil {
+		return nil, deleteUserErr
 	}
 	return &Response{
 		StatusCode: http.StatusOK,
@@ -121,10 +119,13 @@ func (h *UserHandler) getByID(r *http.Request) (*Response, error) {
 		return nil, err
 	}
 
-	user, err := h.userRepository.GetByID(context.Background(), userID)
-	userJSON, err := json.Marshal(user)
-	if err != nil {
-		return nil, err
+	user, getUserErr := h.userRepository.GetByID(context.Background(), userID)
+	if getUserErr != nil {
+		return nil, getUserErr
+	}
+	userJSON, marshalJSONErr := json.Marshal(user)
+	if marshalJSONErr != nil {
+		return nil, marshalJSONErr
 	}
 
 	return &Response{
@@ -145,16 +146,16 @@ func (h *UserHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userJSON, err := json.Marshal(users)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	userJSON, marshalJSONErr := json.Marshal(users)
+	if marshalJSONErr != nil {
+		http.Error(w, marshalJSONErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	_, err = w.Write(userJSON)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	_, writeBodyErr := w.Write(userJSON)
+	if writeBodyErr != nil {
+		http.Error(w, writeBodyErr.Error(), http.StatusInternalServerError)
 		return
 	}
 }

@@ -68,9 +68,9 @@ func (h *OrderHandler) create(r *http.Request) (*Response, error) {
 		return nil, creationOrderErr
 	}
 
-	orderJSON, marshalJsonErr := json.Marshal(createdOrder)
-	if err != nil {
-		return nil, marshalJsonErr
+	orderJSON, marshalJSONErr := json.Marshal(createdOrder)
+	if marshalJSONErr != nil {
+		return nil, marshalJSONErr
 	}
 
 	return &Response{
@@ -87,7 +87,7 @@ func (h *OrderHandler) deleteByID(r *http.Request) (*Response, error) {
 	}
 
 	deleteOrderErr := h.orderRepository.DeleteByID(context.Background(), productID)
-	if err != nil {
+	if deleteOrderErr != nil {
 		return nil, deleteOrderErr
 	}
 
@@ -110,7 +110,7 @@ func (h *OrderHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 	}
 
 	orders, getUserErr := h.orderRepository.GetByUserID(context.Background(), userID)
-	if err != nil {
+	if getUserErr != nil {
 		http.Error(w, getUserErr.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -143,14 +143,14 @@ func (h *OrderHandler) GetByUserEmail(w http.ResponseWriter, r *http.Request) {
 	}
 
 	ordersJSON, marshalJSONErr := json.Marshal(orders)
-	if err != nil {
+	if marshalJSONErr != nil {
 		http.Error(w, marshalJSONErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	_, writeJSONErr := w.Write(ordersJSON)
-	if err != nil {
+	if writeJSONErr != nil {
 		http.Error(w, writeJSONErr.Error(), http.StatusInternalServerError)
 		return
 	}
@@ -176,14 +176,14 @@ func (h *OrderHandler) GetStatistics(w http.ResponseWriter, r *http.Request) {
 	}
 
 	userStatJSON, marshalJSONErr := json.Marshal(userStat)
-	if err != nil {
+	if marshalJSONErr != nil {
 		http.Error(w, marshalJSONErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
 	_, writeBodyErr := w.Write(userStatJSON)
-	if err != nil {
+	if writeBodyErr != nil {
 		http.Error(w, writeBodyErr.Error(), http.StatusInternalServerError)
 		return
 	}

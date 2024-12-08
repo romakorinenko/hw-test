@@ -45,14 +45,14 @@ func TestUserHandler_CRUD(t *testing.T) {
 	}()
 
 	client := resty.New()
-	postResp, err := client.R().
+	postResp, postRespErr := client.R().
 		SetBody(&repository.User{
 			Name:     "User",
 			Email:    "User@mail.ru",
 			Password: "UserPass",
 		}).
 		Post(fmt.Sprintf("%s%s", userURLHost, userPath))
-	require.NoError(t, err)
+	require.NoError(t, postRespErr)
 
 	createdUser := repository.User{
 		ID:       1,
@@ -62,21 +62,21 @@ func TestUserHandler_CRUD(t *testing.T) {
 	}
 
 	var actualPostUser repository.User
-	err = json.Unmarshal(postResp.Body(), &actualPostUser)
-	require.NoError(t, err)
+	actualPostUserUnmarshalErr := json.Unmarshal(postResp.Body(), &actualPostUser)
+	require.NoError(t, actualPostUserUnmarshalErr)
 	require.Equal(t, createdUser, actualPostUser)
 
-	getResp, err := client.R().
+	getResp, getRespErr := client.R().
 		SetQueryParams(map[string]string{"id": strconv.Itoa(actualPostUser.ID)}).
 		Get(fmt.Sprintf("%s%s", userURLHost, userPath))
-	require.NoError(t, err)
+	require.NoError(t, getRespErr)
 
 	var actualGetUser repository.User
-	err = json.Unmarshal(getResp.Body(), &actualGetUser)
-	require.NoError(t, err)
+	actualGetUserErr := json.Unmarshal(getResp.Body(), &actualGetUser)
+	require.NoError(t, actualGetUserErr)
 	require.Equal(t, createdUser, actualPostUser)
 
-	putResp, err := client.R().
+	putResp, putRespErr := client.R().
 		SetQueryParams(map[string]string{"id": strconv.Itoa(actualPostUser.ID)}).
 		SetBody(&repository.User{
 			Name:     actualGetUser.Name,
@@ -84,11 +84,11 @@ func TestUserHandler_CRUD(t *testing.T) {
 			Password: "UserPass11",
 		}).
 		Put(fmt.Sprintf("%s%s", userURLHost, userPath))
-	require.NoError(t, err)
+	require.NoError(t, putRespErr)
 
 	var actualPutUser repository.User
-	err = json.Unmarshal(putResp.Body(), &actualPutUser)
-	require.NoError(t, err)
+	actualPutUserUnmarshalErr := json.Unmarshal(putResp.Body(), &actualPutUser)
+	require.NoError(t, actualPutUserUnmarshalErr)
 	require.Equal(t, "UserPass11", actualPutUser.Password)
 
 	users, err := userRepository.GetAll(ctx)
@@ -100,7 +100,7 @@ func TestUserHandler_CRUD(t *testing.T) {
 		Delete(fmt.Sprintf("%s%s", userURLHost, userPath))
 	require.NoError(t, err)
 
-	emptyUsers, err := userRepository.GetAll(ctx)
-	require.NoError(t, err)
+	emptyUsers, getUsersErr := userRepository.GetAll(ctx)
+	require.NoError(t, getUsersErr)
 	require.Equal(t, 0, len(emptyUsers))
 }

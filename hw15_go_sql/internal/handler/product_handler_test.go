@@ -45,13 +45,13 @@ func TestProductHandler_CRUD(t *testing.T) {
 	}()
 
 	client := resty.New()
-	postResp, err := client.R().
+	postResp, postRespErr := client.R().
 		SetBody(&repository.Product{
 			Name:  "apple",
 			Price: 25.50,
 		}).
 		Post(fmt.Sprintf("%s%s", productURLHost, productPath))
-	require.NoError(t, err)
+	require.NoError(t, postRespErr)
 
 	createdProduct := repository.Product{
 		ID:    1,
@@ -60,32 +60,32 @@ func TestProductHandler_CRUD(t *testing.T) {
 	}
 
 	var actualPostProduct repository.Product
-	err = json.Unmarshal(postResp.Body(), &actualPostProduct)
-	require.NoError(t, err)
+	actualPostProductMarshallErr := json.Unmarshal(postResp.Body(), &actualPostProduct)
+	require.NoError(t, actualPostProductMarshallErr)
 	require.Equal(t, createdProduct, actualPostProduct)
 
-	getResp, err := client.R().
+	getResp, getRespErr := client.R().
 		SetQueryParams(map[string]string{"id": strconv.Itoa(actualPostProduct.ID)}).
 		Get(fmt.Sprintf("%s%s", productURLHost, productPath))
-	require.NoError(t, err)
+	require.NoError(t, getRespErr)
 
 	var actualGetProduct repository.Product
-	err = json.Unmarshal(getResp.Body(), &actualGetProduct)
-	require.NoError(t, err)
+	actualGetProductErr := json.Unmarshal(getResp.Body(), &actualGetProduct)
+	require.NoError(t, actualGetProductErr)
 	require.Equal(t, createdProduct, actualPostProduct)
 
-	putResp, err := client.R().
+	putResp, putRespErr := client.R().
 		SetQueryParams(map[string]string{"id": strconv.Itoa(actualPostProduct.ID)}).
 		SetBody(&repository.Product{
 			Name:  actualGetProduct.Name,
 			Price: 20.50,
 		}).
 		Put(fmt.Sprintf("%s%s", productURLHost, productPath))
-	require.NoError(t, err)
+	require.NoError(t, putRespErr)
 
 	var actualPutProduct repository.Product
-	err = json.Unmarshal(putResp.Body(), &actualPutProduct)
-	require.NoError(t, err)
+	actualPutProductErr := json.Unmarshal(putResp.Body(), &actualPutProduct)
+	require.NoError(t, actualPutProductErr)
 	require.Equal(t, float32(20.50), actualPutProduct.Price)
 
 	products, err := productRepository.GetAll(ctx)
@@ -97,7 +97,7 @@ func TestProductHandler_CRUD(t *testing.T) {
 		Delete(fmt.Sprintf("%s%s", productURLHost, productPath))
 	require.NoError(t, err)
 
-	emptyProducts, err := productRepository.GetAll(ctx)
-	require.NoError(t, err)
+	emptyProducts, getProductsErr := productRepository.GetAll(ctx)
+	require.NoError(t, getProductsErr)
 	require.Equal(t, 0, len(emptyProducts))
 }

@@ -46,8 +46,8 @@ func (h *ProductHandler) Handle(w http.ResponseWriter, r *http.Request) {
 	}
 
 	w.WriteHeader(response.StatusCode)
-	if _, err = w.Write(response.Body); err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	if _, writeBodyErr := w.Write(response.Body); err != nil {
+		http.Error(w, writeBodyErr.Error(), http.StatusInternalServerError)
 		return
 	}
 }
@@ -59,14 +59,14 @@ func (h *ProductHandler) create(r *http.Request) (*Response, error) {
 		return nil, err
 	}
 
-	createdProduct, err := h.productRepository.Create(context.Background(), &product)
-	if err != nil {
-		return nil, err
+	createdProduct, createProductErr := h.productRepository.Create(context.Background(), &product)
+	if createProductErr != nil {
+		return nil, createProductErr
 	}
 
-	productJSON, err := json.Marshal(createdProduct)
-	if err != nil {
-		return nil, err
+	productJSON, marshalJSONErr := json.Marshal(createdProduct)
+	if marshalJSONErr != nil {
+		return nil, marshalJSONErr
 	}
 	return &Response{
 		StatusCode: http.StatusCreated,
@@ -81,14 +81,14 @@ func (h *ProductHandler) update(r *http.Request) (*Response, error) {
 		return nil, err
 	}
 
-	updatedProduct, err := h.productRepository.Update(context.Background(), &product)
-	if err != nil {
-		return nil, err
+	updatedProduct, updateProductErr := h.productRepository.Update(context.Background(), &product)
+	if updateProductErr != nil {
+		return nil, updateProductErr
 	}
 
-	productJSON, err := json.Marshal(updatedProduct)
-	if err != nil {
-		return nil, err
+	productJSON, marshalJSONErr := json.Marshal(updatedProduct)
+	if marshalJSONErr != nil {
+		return nil, marshalJSONErr
 	}
 	return &Response{
 		StatusCode: http.StatusCreated,
@@ -103,9 +103,9 @@ func (h *ProductHandler) deleteByID(r *http.Request) (*Response, error) {
 		return nil, err
 	}
 
-	err = h.productRepository.DeleteByID(context.Background(), productID)
-	if err != nil {
-		return nil, err
+	deleteProductErr := h.productRepository.DeleteByID(context.Background(), productID)
+	if deleteProductErr != nil {
+		return nil, deleteProductErr
 	}
 
 	return &Response{
@@ -120,10 +120,13 @@ func (h *ProductHandler) getByID(r *http.Request) (*Response, error) {
 		return nil, err
 	}
 
-	product, err := h.productRepository.GetByID(context.Background(), productID)
-	productJSON, err := json.Marshal(product)
-	if err != nil {
-		return nil, err
+	product, getProductErr := h.productRepository.GetByID(context.Background(), productID)
+	if getProductErr != nil {
+		return nil, getProductErr
+	}
+	productJSON, marshalJSONErr := json.Marshal(product)
+	if marshalJSONErr != nil {
+		return nil, marshalJSONErr
 	}
 	return &Response{
 		StatusCode: http.StatusCreated,
@@ -143,16 +146,16 @@ func (h *ProductHandler) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	productJSON, err := json.Marshal(products)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	productJSON, marshalJSONErr := json.Marshal(products)
+	if marshalJSONErr != nil {
+		http.Error(w, marshalJSONErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	_, err = w.Write(productJSON)
-	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+	_, writeBodyErr := w.Write(productJSON)
+	if writeBodyErr != nil {
+		http.Error(w, writeBodyErr.Error(), http.StatusInternalServerError)
 		return
 	}
 }

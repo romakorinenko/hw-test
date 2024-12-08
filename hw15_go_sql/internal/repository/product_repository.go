@@ -47,9 +47,9 @@ func (p *ProductRepository) Create(ctx context.Context, product *Product) (*Prod
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 
 	row := p.dbPool.QueryRow(ctx, sql, args...)
-	err = row.Scan()
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		return nil, err
+	rowScanErr := row.Scan()
+	if rowScanErr != nil && !errors.Is(rowScanErr, pgx.ErrNoRows) {
+		return nil, rowScanErr
 	}
 
 	return product, nil
@@ -63,9 +63,9 @@ func (p *ProductRepository) GetByID(ctx context.Context, productID int) (*Produc
 	row := p.dbPool.QueryRow(ctx, sql, args...)
 
 	var product Product
-	err := row.Scan(ProductStruct.Addr(&product)...)
-	if err != nil {
-		return nil, err
+	rowScanErr := row.Scan(ProductStruct.Addr(&product)...)
+	if rowScanErr != nil {
+		return nil, rowScanErr
 	}
 
 	return &product, nil
@@ -85,9 +85,9 @@ func (p *ProductRepository) GetAll(ctx context.Context) ([]Product, error) {
 	res := make([]Product, 0)
 	for rows.Next() {
 		var product Product
-		err := rows.Scan(ProductStruct.Addr(&product)...)
-		if err != nil {
-			return nil, err
+		rowScanErr := rows.Scan(ProductStruct.Addr(&product)...)
+		if rowScanErr != nil {
+			return nil, rowScanErr
 		}
 		res = append(res, product)
 	}
@@ -135,9 +135,9 @@ func (p *ProductRepository) generateNextProductID(ctx context.Context) (int, err
 
 	if rows.Next() {
 		var id int
-		err = rows.Scan(&id)
-		if err != nil {
-			return 0, err
+		rowScanErr := rows.Scan(&id)
+		if rowScanErr != nil {
+			return 0, rowScanErr
 		}
 		return id, nil
 	}

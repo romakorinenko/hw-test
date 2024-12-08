@@ -56,20 +56,20 @@ func (o *OrderRepository) Create(ctx context.Context, order *Order) (*Order, err
 	if err != nil {
 		return nil, err
 	}
-	tx, err := conn.Begin(ctx)
-	if err != nil {
-		return nil, err
+	tx, txErr := conn.Begin(ctx)
+	if txErr != nil {
+		return nil, txErr
 	}
 	defer func() {
-		err = tx.Rollback(ctx)
-		if err != nil {
-			fmt.Println(err)
+		rbErr := tx.Rollback(ctx)
+		if rbErr != nil {
+			fmt.Println(rbErr)
 		}
 	}()
 
-	orderID, err := o.generateNextOrderID(ctx, tx)
-	if err != nil {
-		return nil, err
+	orderID, genIDErr := o.generateNextOrderID(ctx, tx)
+	if genIDErr != nil {
+		return nil, genIDErr
 	}
 	order.ID = orderID
 	order.OrderDate = time.Now()
@@ -77,21 +77,21 @@ func (o *OrderRepository) Create(ctx context.Context, order *Order) (*Order, err
 	sql, args := OrderStruct.InsertInto(ordersTable, order).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 	row := tx.QueryRow(ctx, sql, args...)
-	err = row.Scan()
-	if err != nil && !errors.Is(err, pgx.ErrNoRows) {
-		return nil, err
+	rowScanErr := row.Scan()
+	if rowScanErr != nil && !errors.Is(rowScanErr, pgx.ErrNoRows) {
+		return nil, rowScanErr
 	}
 
 	for _, productID := range order.ProductIDs {
-		err := o.OrderProductRepository.Create(ctx, tx, orderID, productID)
-		if err != nil {
-			return nil, err
+		orderProdCreationErr := o.OrderProductRepository.Create(ctx, tx, orderID, productID)
+		if orderProdCreationErr != nil {
+			return nil, orderProdCreationErr
 		}
 	}
 
-	err = tx.Commit(ctx)
-	if err != nil {
-		return nil, err
+	txErr = tx.Commit(ctx)
+	if txErr != nil {
+		return nil, txErr
 	}
 
 	return order, nil
@@ -103,8 +103,8 @@ func (o *OrderRepository) DeleteByID(ctx context.Context, orderID int) error {
 		return err
 	}
 	defer func() {
-		err = tx.Rollback(ctx)
-		if err != nil {
+		rbErr := tx.Rollback(ctx)
+		if rbErr != nil {
 			fmt.Println(err)
 		}
 	}()
@@ -113,14 +113,14 @@ func (o *OrderRepository) DeleteByID(ctx context.Context, orderID int) error {
 	sql, args := deleteBuilder.Where(deleteBuilder.Equal("id", orderID)).
 		BuildWithFlavor(sqlbuilder.PostgreSQL)
 
-	_, err = tx.Exec(ctx, sql, args...)
-	if err != nil {
-		return fmt.Errorf("cannot delete order from db: %w", err)
+	_, deleteOrderErr := tx.Exec(ctx, sql, args...)
+	if deleteOrderErr != nil {
+		return fmt.Errorf("cannot delete order from db: %w", deleteOrderErr)
 	}
 
-	err = tx.Commit(ctx)
-	if err != nil {
-		return err
+	commitErr := tx.Commit(ctx)
+	if commitErr != nil {
+		return commitErr
 	}
 
 	return nil
@@ -139,9 +139,9 @@ func (o *OrderRepository) GetByUserID(ctx context.Context, userID int) ([]Order,
 	res := make([]Order, 0)
 	for rows.Next() {
 		var order Order
-		err := rows.Scan(OrderStruct.Addr(&order)...)
-		if err != nil {
-			return nil, err
+		rowScanErr := rows.Scan(OrderStruct.Addr(&order)...)
+		if rowScanErr != nil {
+			return nil, rowScanErr
 		}
 		res = append(res, order)
 	}
@@ -202,9 +202,9 @@ func (o *OrderRepository) generateNextOrderID(ctx context.Context, tx pgx.Tx) (i
 
 	if rows.Next() {
 		var id int
-		err = rows.Scan(&id)
-		if err != nil {
-			return 0, err
+		rowScanErr := rows.Scan(&id)
+		if rowScanErr != nil {
+			return 0, rowScanErr
 		}
 		return id, nil
 	}

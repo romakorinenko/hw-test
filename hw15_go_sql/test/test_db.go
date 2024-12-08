@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"path"
 	"runtime"
 	"testing"
@@ -33,7 +34,11 @@ type PostgresContainer struct {
 func CreateDBForTest(t *testing.T, migrationsDir string) *DBForTest {
 	t.Helper()
 
-	_, filename, _, _ := runtime.Caller(0)
+	_, filename, line, ok := runtime.Caller(0)
+	_ = line
+	if !ok {
+		log.Fatalln("cannot receive root project filename")
+	}
 	projectDir := path.Join(path.Dir(filename), "..")
 
 	postgresContainer := RunPostgresContainer(t)
