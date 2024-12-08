@@ -63,14 +63,14 @@ func (h *OrderHandler) create(r *http.Request) (*Response, error) {
 		return nil, err
 	}
 
-	createdOrder, err := h.orderRepository.Create(context.Background(), &order)
-	if err != nil {
-		return nil, err
+	createdOrder, creationOrderErr := h.orderRepository.Create(context.Background(), &order)
+	if creationOrderErr != nil {
+		return nil, creationOrderErr
 	}
 
-	orderJSON, err := json.Marshal(createdOrder)
+	orderJSON, marshalJsonErr := json.Marshal(createdOrder)
 	if err != nil {
-		return nil, err
+		return nil, marshalJsonErr
 	}
 
 	return &Response{
@@ -86,9 +86,9 @@ func (h *OrderHandler) deleteByID(r *http.Request) (*Response, error) {
 		return nil, err
 	}
 
-	err = h.orderRepository.DeleteByID(context.Background(), productID)
+	deleteOrderErr := h.orderRepository.DeleteByID(context.Background(), productID)
 	if err != nil {
-		return nil, err
+		return nil, deleteOrderErr
 	}
 
 	return &Response{
@@ -109,16 +109,20 @@ func (h *OrderHandler) GetByUserID(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	orders, err := h.orderRepository.GetByUserID(context.Background(), userID)
+	orders, getUserErr := h.orderRepository.GetByUserID(context.Background(), userID)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, getUserErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	ordersJSON, err := json.Marshal(orders)
-	_, err = w.Write(ordersJSON)
+	ordersJSON, unmarshalJSONErr := json.Marshal(orders)
+	if unmarshalJSONErr != nil {
+		http.Error(w, unmarshalJSONErr.Error(), http.StatusInternalServerError)
+		return
+	}
+	_, writeBodyErr := w.Write(ordersJSON)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, writeBodyErr.Error(), http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusOK)
@@ -138,16 +142,16 @@ func (h *OrderHandler) GetByUserEmail(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	ordersJSON, err := json.Marshal(orders)
+	ordersJSON, marshalJSONErr := json.Marshal(orders)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, marshalJSONErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	_, err = w.Write(ordersJSON)
+	_, writeJSONErr := w.Write(ordersJSON)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, writeJSONErr.Error(), http.StatusInternalServerError)
 		return
 	}
 }
@@ -165,18 +169,22 @@ func (h *OrderHandler) GetStatistics(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	userStat, err := h.orderRepository.GetStatisticsByID(context.Background(), userID)
+	userStat, getStatErr := h.orderRepository.GetStatisticsByID(context.Background(), userID)
+	if getStatErr != nil {
+		http.Error(w, getStatErr.Error(), http.StatusInternalServerError)
+		return
+	}
 
-	userStatJSON, err := json.Marshal(userStat)
+	userStatJSON, marshalJSONErr := json.Marshal(userStat)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, marshalJSONErr.Error(), http.StatusInternalServerError)
 		return
 	}
 
 	w.WriteHeader(http.StatusOK)
-	_, err = w.Write(userStatJSON)
+	_, writeBodyErr := w.Write(userStatJSON)
 	if err != nil {
-		http.Error(w, err.Error(), http.StatusInternalServerError)
+		http.Error(w, writeBodyErr.Error(), http.StatusInternalServerError)
 		return
 	}
 }

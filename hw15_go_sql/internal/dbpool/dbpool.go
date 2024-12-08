@@ -12,9 +12,9 @@ func NewDBPool(ctx context.Context, dBCfg *config.DB) (*pgxpool.Pool, error) {
 	if err != nil {
 		return nil, err
 	}
-	DBPool, err := pgxpool.NewWithConfig(ctx, DBConfig)
-	if err != nil {
-		return nil, err
+	DBPool, dbPoolErr := pgxpool.NewWithConfig(ctx, DBConfig)
+	if dbPoolErr != nil {
+		return nil, dbPoolErr
 	}
 	return DBPool, nil
 }
